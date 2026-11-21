@@ -1,8 +1,17 @@
 'use client';
-import * as Dialog from '@radix-ui/react-dialog';
-import { ArrowRight, UserRound, X } from 'lucide-react';
-import { imageUrl, type MovieDetails } from '@/lib/types';
-import { MovieImage } from '@/components/movies/movie-image';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { ArrowRight } from 'lucide-react';
+import type { MovieDetails } from '@/lib/types';
+import { PersonPortrait } from '@/components/people/person-portrait';
 
 export const FullCast = ({
   cast,
@@ -11,46 +20,32 @@ export const FullCast = ({
   cast: MovieDetails['credits']['cast'];
   title: string;
 }) => (
-  <Dialog.Root>
-    <Dialog.Trigger asChild>
-      <button type="button" className="button button-secondary">
-        See full cast <span className="cast-count">{cast.length}</span> <ArrowRight size={16} />
-      </button>
-    </Dialog.Trigger>
-    <Dialog.Portal>
-      <Dialog.Overlay className="dialog-overlay" />
-      <Dialog.Content className="dialog-content full-cast-dialog">
-        <header className="full-cast-header">
-          <Dialog.Title className="dialog-title">Full cast</Dialog.Title>
-          <Dialog.Description>
-            {title} · {cast.length} cast members
-          </Dialog.Description>
-          <Dialog.Close className="dialog-close" aria-label="Close full cast">
-            <X size={20} />
-          </Dialog.Close>
-        </header>
-        <ul className="full-cast-list" aria-label="Full cast">
-          {cast.map((person, index) => (
-            <li key={`${person.id}-${index}`} className="full-cast-person">
+  <Dialog>
+    <DialogTrigger render={<Button variant="outline" className="button" />}>
+      See full cast <span className="cast-count">{cast.length}</span> <ArrowRight size={16} />
+    </DialogTrigger>
+    <DialogContent className="max-h-[min(85dvh,720px)] overflow-hidden sm:max-w-3xl">
+      <DialogHeader className="pr-8">
+        <DialogTitle>Full cast</DialogTitle>
+        <DialogDescription>
+          {title} · {cast.length} cast members
+        </DialogDescription>
+      </DialogHeader>
+      <ul className="full-cast-list min-h-0 overflow-y-auto" aria-label="Full cast">
+        {cast.map((person, index) => (
+          <li key={`${person.id}-${index}`}>
+            <Link href={`/person/${person.id}`} className="full-cast-person cast-person-link">
               <div className="cast-photo">
-                {person.profile_path ? (
-                  <MovieImage
-                    src={imageUrl(person.profile_path, 'w185')}
-                    alt={person.name}
-                    sizes="56px"
-                  />
-                ) : (
-                  <UserRound size={24} aria-hidden="true" />
-                )}
+                <PersonPortrait path={person.profile_path} name={person.name} alt="" sizes="56px" />
               </div>
               <div>
                 <h3>{person.name}</h3>
                 <p>{person.character || 'Role not listed'}</p>
               </div>
-            </li>
-          ))}
-        </ul>
-      </Dialog.Content>
-    </Dialog.Portal>
-  </Dialog.Root>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </DialogContent>
+  </Dialog>
 );

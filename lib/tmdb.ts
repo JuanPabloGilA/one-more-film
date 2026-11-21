@@ -1,7 +1,7 @@
 import { cache } from 'react';
 import { demoDetail, demoMovies } from './demo';
 import { toMovie } from './movie';
-import type { MovieDetails, MovieList } from './types';
+import type { MovieDetails, MovieList, PersonDetails } from './types';
 
 export class TmdbError extends Error {
   constructor(
@@ -83,7 +83,7 @@ export const getMovie = cache(async (id: number): Promise<MovieDetails> => {
     return movie;
   }
   const data = await tmdbRequest<MovieDetails>(`movie/${id}`, {
-    append_to_response: 'credits,videos,recommendations',
+    append_to_response: 'credits,videos,recommendations,keywords',
   });
   return {
     ...data,
@@ -91,4 +91,10 @@ export const getMovie = cache(async (id: number): Promise<MovieDetails> => {
     recommendations: { results: data.recommendations.results.map(toMovie) },
     demo: false,
   };
+});
+
+export const getPerson = cache(async (id: number): Promise<PersonDetails> => {
+  if (!Number.isSafeInteger(id) || id < 1 || isDemoMode())
+    throw new TmdbError('This person could not be found.', 404);
+  return tmdbRequest<PersonDetails>(`person/${id}`, { append_to_response: 'movie_credits' });
 });

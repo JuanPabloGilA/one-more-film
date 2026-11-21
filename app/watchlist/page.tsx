@@ -1,4 +1,5 @@
 'use client';
+import { buttonVariants } from '@/components/ui/button';
 import Link from 'next/link';
 import { Bookmark } from 'lucide-react';
 import { MovieCard } from '@/components/movies/movie-card';
@@ -9,7 +10,9 @@ const Watchlist = () => {
     <main id="main-content" className="section-shell watchlist-page">
       <span className="eyebrow">For another night</span>
       <h1>Your watchlist</h1>
-      <p className="section-description">The films you saved, kept in this browser.</p>
+      <p className="section-description">
+        Tap the bookmark on any film to save it here. Your watchlist stays in this browser.
+      </p>
       {message.includes('storage') && (
         <p role="status" className="demo-notice">
           {message}
@@ -25,8 +28,8 @@ const Watchlist = () => {
             {movies.length} {movies.length === 1 ? 'film' : 'films'} waiting for you
           </p>
           <div className="movie-grid">
-            {movies.map((movie) => (
-              <MovieCard key={movie.id} movie={movie} />
+            {movies.map((movie, index) => (
+              <MovieCard key={movie.id} movie={movie} priority={index < 2} />
             ))}
           </div>
         </>
@@ -34,8 +37,7 @@ const Watchlist = () => {
         <div className="empty-state">
           <Bookmark size={24} strokeWidth={1.5} />
           <h2>Your watchlist starts with one film</h2>
-          <p>Tap the bookmark on any film to save it for later. No account needed.</p>
-          <Link href="/" className="button button-primary">
+          <Link href="/" className={buttonVariants({ variant: 'default', className: 'button' })}>
             Find a film
           </Link>
         </div>

@@ -1,4 +1,5 @@
 'use client';
+import { Button, buttonVariants } from '@/components/ui/button';
 import Link from 'next/link';
 import { Film } from 'lucide-react';
 const ErrorPage = ({ reset }: { reset: () => void }) => (
@@ -7,10 +8,13 @@ const ErrorPage = ({ reset }: { reset: () => void }) => (
     <h1>A brief intermission</h1>
     <p>We couldn’t reach the movie service. Please try again in a moment.</p>
     <div className="hero-actions">
-      <button onClick={reset} className="button button-primary">
+      <Button onClick={reset} className="button">
         Try again
-      </button>
-      <Link href="/watchlist" className="button button-secondary">
+      </Button>
+      <Link
+        href="/watchlist"
+        className={buttonVariants({ variant: 'outline', className: 'button' })}
+      >
         Open watchlist
       </Link>
     </div>

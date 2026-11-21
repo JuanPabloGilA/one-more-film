@@ -1,4 +1,5 @@
 'use client';
+import { Button } from '@/components/ui/button';
 import { Bookmark } from 'lucide-react';
 import { useWatchlist } from '@/components/watchlist/watchlist-provider';
 import type { Movie } from '@/lib/types';
@@ -6,13 +7,11 @@ export const SaveButton = ({ movie, compact = false }: { movie: Movie; compact?:
   const { movies, ready, toggle } = useWatchlist();
   const saved = movies.some((item) => item.id === movie.id);
   return (
-    <button
+    <Button
       type="button"
-      className={
-        compact
-          ? `save-button ${saved ? 'is-saved' : ''}`
-          : `button button-secondary ${saved ? 'is-saved' : ''}`
-      }
+      variant={saved ? 'secondary' : 'outline'}
+      size={compact ? 'icon' : 'default'}
+      className={compact ? 'absolute top-2 right-2 bg-background/95' : 'button'}
       aria-label={
         compact
           ? `${saved ? 'Remove' : 'Save'} ${movie.title}${saved ? ' from' : ' to'} watchlist`
@@ -24,6 +23,6 @@ export const SaveButton = ({ movie, compact = false }: { movie: Movie; compact?:
     >
       <Bookmark size={16} strokeWidth={1.5} fill={saved ? 'currentColor' : 'none'} />
       {!compact && (saved ? 'Saved for later' : 'Save for later')}
-    </button>
+    </Button>
   );
 };

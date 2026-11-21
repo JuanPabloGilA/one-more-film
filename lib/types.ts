@@ -18,6 +18,17 @@ export type MovieList = {
   demo: boolean;
 };
 export type MovieDetails = Movie & {
+  original_title?: string;
+  status?: string;
+  budget?: number;
+  revenue?: number;
+  homepage?: string;
+  imdb_id?: string | null;
+  production_companies?: { id: number; name: string }[];
+  production_countries?: { iso_3166_1: string; name: string }[];
+  spoken_languages?: { english_name: string; name: string }[];
+  belongs_to_collection?: { id: number; name: string } | null;
+  keywords?: { keywords: { id: number; name: string }[] };
   tagline: string;
   runtime: number | null;
   genres: { id: number; name: string }[];
@@ -60,3 +71,19 @@ export const imageUrl = (
 export const year = (date: string) => date?.slice(0, 4) || 'TBA';
 export const runtimeLabel = (minutes: number | null) =>
   minutes ? `${Math.floor(minutes / 60)}h ${minutes % 60}m` : 'Runtime unavailable';
+
+export type PersonCredit = Movie & { character?: string; job?: string; adult?: boolean };
+export type PersonDetails = {
+  id: number;
+  name: string;
+  biography: string;
+  profile_path: string | null;
+  birthday: string | null;
+  deathday: string | null;
+  place_of_birth: string | null;
+  known_for_department: string;
+  also_known_as: string[];
+  homepage: string | null;
+  imdb_id: string | null;
+  movie_credits: { cast: PersonCredit[]; crew: PersonCredit[] };
+};

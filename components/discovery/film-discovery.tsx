@@ -1,5 +1,8 @@
 'use client';
+import { Button } from '@/components/ui/button';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { Toggle } from '@/components/ui/toggle';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
@@ -106,33 +109,33 @@ export const FilmDiscovery = () => {
             stay open to anything.
           </p>
           <div className="preference-genres">
-            <button
+            <Toggle
+              variant="outline"
               type="button"
-              className={`preference-choice ${!preferences.genres.length ? 'selected' : ''}`}
-              aria-pressed={!preferences.genres.length}
-              onClick={() => setPreferences((p) => ({ ...p, genres: [] }))}
+              pressed={!preferences.genres.length}
+              onPressedChange={() => setPreferences((p) => ({ ...p, genres: [] }))}
             >
               Open to anything {!preferences.genres.length && <Check size={16} />}
-            </button>
+            </Toggle>
             {genreChoices.map((id) => {
               const selected = preferences.genres.includes(id);
               return (
-                <button
+                <Toggle
+                  variant="outline"
                   key={id}
                   type="button"
-                  className={`preference-choice ${selected ? 'selected' : ''}`}
-                  aria-pressed={selected}
+                  pressed={selected}
                   disabled={!selected && preferences.genres.length === 3}
-                  onClick={() =>
+                  onPressedChange={(pressed) =>
                     setPreferences((p) => ({
                       ...p,
-                      genres: selected ? p.genres.filter((g) => g !== id) : [...p.genres, id],
+                      genres: pressed ? [...p.genres, id] : p.genres.filter((g) => g !== id),
                     }))
                   }
                 >
                   {GENRES[id]}
                   {selected && <Check size={16} />}
-                </button>
+                </Toggle>
               );
             })}
           </div>
@@ -141,7 +144,16 @@ export const FilmDiscovery = () => {
           <legend>
             <span>02</span> From which era?
           </legend>
-          <div className="preference-options">
+          <RadioGroup
+            name="era"
+            aria-label="From which era?"
+            className="preference-options"
+            value={preferences.era}
+            disabled={pending}
+            onValueChange={(value) =>
+              setPreferences((p) => ({ ...p, era: value as DiscoveryPreferences['era'] }))
+            }
+          >
             {(
               [
                 ['any', 'Any era', 'Good stories don’t age'],
@@ -149,28 +161,34 @@ export const FilmDiscovery = () => {
                 ['classic', 'Classics', 'Before 2000'],
               ] as const
             ).map(([value, label, hint]) => (
-              <label key={value} className="preference-radio">
-                <input
-                  type="radio"
-                  name="era"
-                  value={value}
-                  checked={preferences.era === value}
-                  onChange={() => setPreferences((p) => ({ ...p, era: value }))}
-                />
+              <label
+                key={value}
+                htmlFor={`era-${value}`}
+                className="preference-radio has-[[data-checked]]:border-primary has-[[data-checked]]:bg-accent"
+              >
+                <RadioGroupItem id={`era-${value}`} value={value} className="order-2" />
                 <span>
                   <strong>{label}</strong>
                   <small>{hint}</small>
                 </span>
-                <span className="radio-mark" />
               </label>
             ))}
-          </div>
+          </RadioGroup>
         </fieldset>
         <fieldset disabled={pending}>
           <legend>
             <span>03</span> How much time do you have?
           </legend>
-          <div className="preference-options">
+          <RadioGroup
+            name="length"
+            aria-label="How much time do you have?"
+            className="preference-options"
+            value={preferences.length}
+            disabled={pending}
+            onValueChange={(value) =>
+              setPreferences((p) => ({ ...p, length: value as DiscoveryPreferences['length'] }))
+            }
+          >
             {(
               [
                 ['any', 'No rush', 'Any length'],
@@ -178,22 +196,19 @@ export const FilmDiscovery = () => {
                 ['long', 'Make a night of it', 'Two hours or more'],
               ] as const
             ).map(([value, label, hint]) => (
-              <label key={value} className="preference-radio">
-                <input
-                  type="radio"
-                  name="length"
-                  value={value}
-                  checked={preferences.length === value}
-                  onChange={() => setPreferences((p) => ({ ...p, length: value }))}
-                />
+              <label
+                key={value}
+                htmlFor={`length-${value}`}
+                className="preference-radio has-[[data-checked]]:border-primary has-[[data-checked]]:bg-accent"
+              >
+                <RadioGroupItem id={`length-${value}`} value={value} className="order-2" />
                 <span>
                   <strong>{label}</strong>
                   <small>{hint}</small>
                 </span>
-                <span className="radio-mark" />
               </label>
             ))}
-          </div>
+          </RadioGroup>
         </fieldset>
         {error && (
           <p className="discovery-error" role="alert">
@@ -201,19 +216,20 @@ export const FilmDiscovery = () => {
           </p>
         )}
         <div className="preference-submit">
-          <button className="button button-primary discovery-cta" disabled={pending} type="submit">
+          <Button className="button discovery-cta" disabled={pending} type="submit">
             {pending ? 'Finding your films…' : 'Find my next film'}
             <ArrowRight size={18} />
-          </button>
+          </Button>
           {session && (
-            <button
-              className="button button-quiet"
+            <Button
+              variant="ghost"
+              className="button"
               type="button"
               disabled={pending}
               onClick={() => setEditing(false)}
             >
               Back to my films
-            </button>
+            </Button>
           )}
         </div>
         <p className="preference-privacy">English-language films only. No account needed.</p>

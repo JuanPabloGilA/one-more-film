@@ -1,10 +1,11 @@
 'use client';
 import Image from 'next/image';
 import { Film } from 'lucide-react';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 export const MovieImage = ({
   src,
   fallbackSrc,
+  fallback,
   alt,
   sizes,
   priority = false,
@@ -12,6 +13,7 @@ export const MovieImage = ({
 }: {
   src: string | null;
   fallbackSrc?: string | null;
+  fallback?: ReactNode;
   alt: string;
   sizes: string;
   priority?: boolean;
@@ -25,11 +27,11 @@ export const MovieImage = ({
     return (
       <div
         className={`image-fallback ${className}`}
-        role="img"
-        aria-label={`${alt} — artwork unavailable`}
+        role={alt ? 'img' : undefined}
+        aria-label={alt ? `${alt}: image unavailable` : undefined}
+        aria-hidden={alt ? undefined : true}
       >
-        <Film size={24} strokeWidth={1.5} />
-        <span>Artwork unavailable</span>
+        {fallback ?? <Film size={24} strokeWidth={1.5} aria-hidden="true" />}
       </div>
     );
   return (

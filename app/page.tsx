@@ -1,3 +1,4 @@
+import { buttonVariants } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowRight, ArrowUpRight, Star } from 'lucide-react';
 import { getMovies, normalizePage } from '@/lib/tmdb';
@@ -89,7 +90,13 @@ const Home = async ({
                   Pick your mood. Watch the trailers. Find your film.
                 </span>
               </div>
-              <Link href="/discover" className="button button-primary discovery-cta">
+              <Link
+                href="/discover"
+                className={buttonVariants({
+                  variant: 'default',
+                  className: 'button discovery-cta',
+                })}
+              >
                 Find my next film <ArrowRight size={18} />
               </Link>
             </div>

@@ -1,0 +1,10 @@
+One More Film media kit
+
+Open one-more-film-media-kit.pdf for the overview and brand guide.
+logos/: three symbol colors and three horizontal wordmarks, all SVG.
+social/: 1200 x 630 share graphic and 512 x 512 avatar, both SVG.
+screenshots/: original application captures in JPEG.
+product-copy.txt: reusable descriptions, links, facts, typography and usage notes.
+palette.json and brand.css: brand color values.
+
+The site link is the current public deployment. Local changes are not automatically published.

@@ -1,0 +1,46 @@
+ONE MORE FILM
+
+Tagline
+Find something worth watching.
+
+One sentence
+One More Film helps you discover movies through daily trends, preferences and a scrolling trailer feed.
+
+Short description
+One More Film is a movie discovery app for finding your next watch. Browse daily trends, choose your genres, era and runtime, then explore trailers one film at a time. Open the full details and cast, or save a film to your browser's watchlist. No account is required.
+
+Key features
+- Daily and weekly trending movies
+- Search, movie details, full cast and related films
+- English-language discovery by genre, era and runtime
+- Scrolling trailers with native YouTube controls
+- Browser-local watchlists
+
+Product facts
+Platform: responsive web application
+Data: TMDB
+Playback: YouTube
+Stack: Next.js 16, React 19, TypeScript, Tailwind CSS 4, shadcn/ui with Base UI, Turbopack
+Storage: localStorage for watchlists; no database
+Recommendations: preference filters, not an AI model
+
+Links
+Live application: https://one-more-film-ruby.vercel.app
+Source code: https://github.com/JuanPabloGilA/one-more-film
+Project author: Juan Pablo Gil
+
+Typography
+Barlow Condensed Semibold 600 for headings and wordmarks. Barlow 400, 500 and 600 for body text and controls. Arial or sans-serif fallback.
+The supplied wordmarks and social graphics use outlined text, so no font installation is needed.
+Barlow and Barlow Condensed are distributed under the SIL Open Font License. Source: https://github.com/jpt/barlow
+
+Brand usage
+Write the name as One More Film. Use the original Encore symbol without stretching, rotating, adding shadows or gradients. Leave clear space of at least one quarter of the symbol's width. Keep the symbol at least 24 px wide and the full wordmark at least 150 px wide. Use the white variants on ink or dark imagery. Cerulean is the primary brand accent; Fresh Sky is for larger accents and dark backgrounds, not small text on white.
+
+Asset notes
+All logo and social artwork is SVG. Wordmarks contain outlined letterforms for consistent rendering. Screenshots show the application with TMDB content; films, ratings and availability change over time. Screenshot movie artwork belongs to its respective rights holders and is included to show the application, not as standalone promotional artwork.
+
+Attribution
+This product uses the TMDB API but is not endorsed or certified by TMDB.
+Trailers are hosted on YouTube.
+Design refinement used Unslop by Damir Sokolovsky, licensed CC BY 4.0: https://github.com/heydamir/unslop

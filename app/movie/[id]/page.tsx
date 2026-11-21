@@ -1,14 +1,16 @@
 import { ViewTransition } from 'react';
+import Link from 'next/link';
+import { MovieInformation } from '@/components/movies/movie-information';
 import { MovieBackdrop } from '@/components/movies/movie-backdrop';
 import { MoviePoster } from '@/components/movies/movie-poster';
 import { BackToMovies } from '@/components/movies/movie-navigation';
 import { notFound } from 'next/navigation';
 import { Star } from 'lucide-react';
 import { getMovie, TmdbError } from '@/lib/tmdb';
-import { imageUrl, runtimeLabel, year } from '@/lib/types';
+import { runtimeLabel, year } from '@/lib/types';
 import { toMovie } from '@/lib/movie';
 import { selectTrailer } from '@/lib/trailer';
-import { MovieImage } from '@/components/movies/movie-image';
+import { PersonPortrait } from '@/components/people/person-portrait';
 import { SaveButton } from '@/components/watchlist/save-button';
 import { MovieCard } from '@/components/movies/movie-card';
 import { Trailer } from '@/components/movies/trailer';
@@ -27,7 +29,7 @@ export const generateMetadata = async ({ params }: { params: Promise<{ id: strin
 };
 const MoviePage = async ({ params }: { params: Promise<{ id: string }> }) => {
   const movie = await loadMovie((await params).id);
-  const director = movie.credits.crew.find((person) => person.job === 'Director');
+  const directors = movie.credits.crew.filter((person) => person.job === 'Director');
   const trailer = selectTrailer(movie.videos.results);
   return (
     <main id="main-content">
@@ -85,7 +87,18 @@ const MoviePage = async ({ params }: { params: Promise<{ id: string }> }) => {
                 <dl className="film-facts">
                   <div>
                     <dt>Director</dt>
-                    <dd>{director?.name ?? 'Not available'}</dd>
+                    <dd>
+                      {directors.length
+                        ? directors.map((person, index) => (
+                            <span key={person.id}>
+                              {index > 0 && ', '}
+                              <Link className="person-link" href={`/person/${person.id}`}>
+                                {person.name}
+                              </Link>
+                            </span>
+                          ))
+                        : 'Not available'}
+                    </dd>
                   </div>
                   <div>
                     <dt>Original language</dt>
@@ -126,21 +139,27 @@ const MoviePage = async ({ params }: { params: Promise<{ id: string }> }) => {
           </div>
           <div className="cast-grid">
             {movie.credits.cast.slice(0, 6).map((person) => (
-              <article key={person.id} className="cast-card">
+              <Link
+                key={person.id}
+                href={`/person/${person.id}`}
+                className="cast-card cast-person-link"
+              >
                 <div className="cast-photo">
-                  <MovieImage
-                    src={imageUrl(person.profile_path, 'w185')}
-                    alt={person.name}
+                  <PersonPortrait
+                    path={person.profile_path}
+                    name={person.name}
+                    alt=""
                     sizes="(max-width: 760px) 64px, 72px"
                   />
                 </div>
                 <h3>{person.name}</h3>
                 <p>{person.character}</p>
-              </article>
+              </Link>
             ))}
           </div>
         </section>
       )}
+      <MovieInformation movie={movie} />
       {movie.recommendations.results.length > 0 && (
         <section className="section-shell recommendations">
           <div className="section-heading">

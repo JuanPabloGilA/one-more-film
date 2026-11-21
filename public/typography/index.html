@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Five typography pairings · One More Film</title>
+    <style>
+      @font-face {
+        font-family: 'Space Grotesk';
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url('fonts/space-grotesk-latin-600-normal.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'DM Sans';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url('fonts/dm-sans-latin-400-normal.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'DM Sans';
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url('fonts/dm-sans-latin-600-normal.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Sora';
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url('fonts/sora-latin-600-normal.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Manrope';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url('fonts/manrope-latin-400-normal.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Manrope';
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url('fonts/manrope-latin-600-normal.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Bricolage Grotesque';
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url('fonts/bricolage-grotesque-latin-600-normal.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Barlow Condensed';
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url('fonts/barlow-condensed-latin-600-normal.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Barlow';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url('fonts/barlow-latin-400-normal.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Barlow';
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url('fonts/barlow-latin-600-normal.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Instrument Serif';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url('fonts/instrument-serif-latin-400-normal.woff2') format('woff2');
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        background: #eef3f5;
+        color: #00171f;
+        font-family: 'DM Sans', sans-serif;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      a:focus-visible {
+        outline: 3px solid #007ea7;
+        outline-offset: 4px;
+      }
+      .intro,
+      .samples,
+      .footer {
+        width: min(1320px, calc(100% - 64px));
+        margin: auto;
+      }
+      .intro {
+        padding: 48px 0 32px;
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 32px;
+      }
+      .intro .kicker {
+        font-size: 13px;
+        color: #007ea7;
+        margin: 0 0 12px;
+      }
+      .intro h1 {
+        font-size: 36px;
+        letter-spacing: -1.2px;
+        line-height: 1.15;
+        margin: 0;
+        font-weight: 600;
+      }
+      .intro p {
+        max-width: 390px;
+        font-size: 14px;
+        line-height: 1.7;
+        color: #435660;
+        margin: 0;
+      }
+      .samples {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 36px 28px;
+      }
+      .sample {
+        min-width: 0;
+      }
+      .sample-label {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
+        min-height: 48px;
+      }
+      .number {
+        font-size: 22px;
+        font-weight: 600;
+        color: #007ea7;
+        font-variant-numeric: tabular-nums;
+      }
+      .sample-label h2 {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0 0 3px;
+      }
+      .sample-label h2 span {
+        font-weight: 400;
+        color: #435660;
+      }
+      .sample-label p {
+        font-size: 12px;
+        color: #60727b;
+        margin: 0;
+      }
+      .pick {
+        margin-left: auto;
+        font-size: 11px;
+        color: #003459;
+      }
+      .preview {
+        background: white;
+        border: 1px solid #dfe7eb;
+        border-radius: 16px;
+        overflow: hidden;
+        font-family: var(--body), sans-serif;
+      }
+      .preview header {
+        height: 68px;
+        padding: 0 28px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid #eef3f5;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: var(--display), sans-serif;
+        font-weight: var(--weight);
+        font-size: 17px;
+        letter-spacing: -0.4px;
+      }
+      .search {
+        display: grid;
+        place-items: center;
+        background: #eef3f5;
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+      }
+      .preview nav {
+        display: flex;
+        gap: 4px;
+        padding: 4px;
+        background: #f3f6f7;
+        margin: 20px 28px 0;
+        width: max-content;
+        border-radius: 10px;
+        font-size: 12px;
+      }
+      .preview nav a {
+        padding: 10px 16px;
+        border-radius: 7px;
+      }
+      .preview nav a[aria-current] {
+        background: white;
+        box-shadow: 0 1px 3px #00171f0d;
+        font-weight: 600;
+      }
+      .play {
+        color: #007ea7;
+        font-size: 11px;
+      }
+      .count {
+        font-size: 10px;
+        color: #60727b;
+      }
+      .hero {
+        padding: 24px 28px;
+      }
+      .eyebrow {
+        font-size: 11px;
+        color: #60727b;
+      }
+      .hero h3 {
+        font-family: var(--display), sans-serif;
+        font-size: 44px;
+        font-weight: var(--weight);
+        line-height: 1.04;
+        letter-spacing: -1.6px;
+        margin: 14px 0 16px;
+      }
+      .hero p {
+        font-size: 14px;
+        line-height: 1.65;
+        color: #435660;
+        margin: 0 0 20px;
+      }
+      .cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 32px;
+        min-height: 44px;
+        padding: 0 16px;
+        border-radius: 9px;
+        background: #00171f;
+        color: white;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .cta span {
+        font-size: 19px;
+        font-weight: 400;
+      }
+      .film-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 16px;
+        margin: 0 28px;
+        padding: 20px 0;
+        border-top: 1px solid #dfe7eb;
+        align-items: center;
+      }
+      .film-row h4 {
+        font-family: var(--display), sans-serif;
+        font-weight: var(--weight);
+        font-size: 18px;
+        letter-spacing: -0.3px;
+        margin: 0 0 4px;
+      }
+      .film-row p {
+        font-size: 11px;
+        color: #60727b;
+        margin: 0;
+      }
+      .rating {
+        font-size: 12px;
+        color: #435660;
+      }
+      .rating span {
+        color: #007ea7;
+      }
+      .note {
+        font-size: 12px;
+        line-height: 1.6;
+        color: #435660;
+        margin: 12px 4px 0;
+      }
+      .footer {
+        padding: 36px 0 48px;
+        color: #60727b;
+        font-size: 12px;
+      }
+      .footer a {
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+      @media (min-width: 1000px) {
+        #sample-05 .hero h3 {
+          font-size: 50px;
+        }
+      }
+      @media (min-width: 761px) and (max-width: 1100px) {
+        .samples {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      @media (max-width: 760px) {
+        .intro,
+        .samples,
+        .footer {
+          width: calc(100% - 32px);
+        }
+        .intro {
+          display: block;
+          padding: 32px 0 24px;
+        }
+        .intro h1 {
+          font-size: 30px;
+          margin-bottom: 16px;
+        }
+        .samples {
+          grid-template-columns: 1fr;
+          gap: 28px;
+        }
+        .preview header {
+          padding-inline: 20px;
+        }
+        .preview nav {
+          margin-inline: 20px;
+        }
+        .hero {
+          padding: 24px 20px;
+        }
+        .hero h3 {
+          font-size: 42px;
+          letter-spacing: -1.3px;
+        }
+        .film-row {
+          margin-inline: 20px;
+          gap: 12px;
+        }
+        .film-row h4 {
+          font-size: 16px;
+        }
+        .sample-label h2 {
+          font-size: 14px;
+        }
+        .sample-label h2 span {
+          display: block;
+          font-size: 12px;
+        }
+        .rating {
+          display: none;
+        }
+        .preview nav a {
+          padding-inline: 12px;
+        }
+        .film-row {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="intro">
+      <div>
+        <p class="kicker">One More Film / Typography study</p>
+        <h1>Five ways to set the mood.</h1>
+      </div>
+      <p>
+        Same copy. Same palette. Five type pairings.<br />The first font shapes the brand and
+        headlines;<br />the second handles navigation, buttons, and reading.
+      </p>
+    </div>
+    <main class="samples">
+      <section
+        class="sample"
+        id="sample-01"
+        style="--display: 'Space Grotesk'; --body: 'DM Sans'; --weight: 600"
+      >
+        <div class="sample-label">
+          <span class="number">01</span>
+          <div>
+            <h2>Space Grotesk <span>+ DM Sans</span></h2>
+            <p>Sharp & cinematic</p>
+          </div>
+          <span class="pick">My pick</span>
+        </div>
+        <div class="preview">
+          <header>
+            <a href="/" class="brand"
+              ><img src="/logo.svg" alt="" width="26" height="26" />One More Film</a
+            ><a class="search" href="/?q=Dune" aria-label="Search for Dune"
+              ><svg
+                width="17"
+                height="17"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                aria-hidden="true"
+              >
+                <circle cx="10.5" cy="10.5" r="6.5" />
+                <path d="m16 16 4 4" /></svg
+            ></a>
+          </header>
+          <nav aria-label="Space Grotesk sample navigation">
+            <a href="/" aria-current="page">Home</a
+            ><a href="/discover"><span class="play">▶</span> For you</a
+            ><a href="/watchlist">Watchlist <span class="count">0</span></a>
+          </nav>
+          <div class="hero">
+            <span class="eyebrow">A film for tonight. A few for later.</span>
+            <h3>Find your<br />next great film.</h3>
+            <p>Pick your mood. Watch the trailers.<br />Find the story you’ll stay up for.</p>
+            <a class="cta" href="/discover">Find my next film <span aria-hidden="true">↗</span></a>
+          </div>
+          <div class="film-row">
+            <div>
+              <h4>The Odyssey</h4>
+              <p>2026 · Adventure</p>
+            </div>
+            <div>
+              <h4>Dune: Part Three</h4>
+              <p>2026 · Science fiction</p>
+            </div>
+            <span class="rating">8.4 <span aria-hidden="true">☆</span></span>
+          </div>
+        </div>
+        <p class="note">
+          My pick for the current direction. Distinctive headings with a quiet, readable interface.
+        </p>
+      </section>
+      <section
+        class="sample"
+        id="sample-02"
+        style="--display: 'Sora'; --body: 'Manrope'; --weight: 600"
+      >
+        <div class="sample-label">
+          <span class="number">02</span>
+          <div>
+            <h2>Sora <span>+ Manrope</span></h2>
+            <p>Precise & geometric</p>
+          </div>
+        </div>
+        <div class="preview">
+          <header>
+            <a href="/" class="brand"
+              ><img src="/logo.svg" alt="" width="26" height="26" />One More Film</a
+            ><a class="search" href="/?q=Dune" aria-label="Search for Dune"
+              ><svg
+                width="17"
+                height="17"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                aria-hidden="true"
+              >
+                <circle cx="10.5" cy="10.5" r="6.5" />
+                <path d="m16 16 4 4" /></svg
+            ></a>
+          </header>
+          <nav aria-label="Sora sample navigation">
+            <a href="/" aria-current="page">Home</a
+            ><a href="/discover"><span class="play">▶</span> For you</a
+            ><a href="/watchlist">Watchlist <span class="count">0</span></a>
+          </nav>
+          <div class="hero">
+            <span class="eyebrow">A film for tonight. A few for later.</span>
+            <h3>Find your<br />next great film.</h3>
+            <p>Pick your mood. Watch the trailers.<br />Find the story you’ll stay up for.</p>
+            <a class="cta" href="/discover">Find my next film <span aria-hidden="true">↗</span></a>
+          </div>
+          <div class="film-row">
+            <div>
+              <h4>The Odyssey</h4>
+              <p>2026 · Adventure</p>
+            </div>
+            <div>
+              <h4>Dune: Part Three</h4>
+              <p>2026 · Science fiction</p>
+            </div>
+            <span class="rating">8.4 <span aria-hidden="true">☆</span></span>
+          </div>
+        </div>
+        <p class="note">A crisp, spacious pairing with a more digital feel.</p>
+      </section>
+      <section
+        class="sample"
+        id="sample-03"
+        style="--display: 'Bricolage Grotesque'; --body: 'DM Sans'; --weight: 600"
+      >
+        <div class="sample-label">
+          <span class="number">03</span>
+          <div>
+            <h2>Bricolage Grotesque <span>+ DM Sans</span></h2>
+            <p>Expressive & independent</p>
+          </div>
+        </div>
+        <div class="preview">
+          <header>
+            <a href="/" class="brand"
+              ><img src="/logo.svg" alt="" width="26" height="26" />One More Film</a
+            ><a class="search" href="/?q=Dune" aria-label="Search for Dune"
+              ><svg
+                width="17"
+                height="17"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                aria-hidden="true"
+              >
+                <circle cx="10.5" cy="10.5" r="6.5" />
+                <path d="m16 16 4 4" /></svg
+            ></a>
+          </header>
+          <nav aria-label="Bricolage Grotesque sample navigation">
+            <a href="/" aria-current="page">Home</a
+            ><a href="/discover"><span class="play">▶</span> For you</a
+            ><a href="/watchlist">Watchlist <span class="count">0</span></a>
+          </nav>
+          <div class="hero">
+            <span class="eyebrow">A film for tonight. A few for later.</span>
+            <h3>Find your<br />next great film.</h3>
+            <p>Pick your mood. Watch the trailers.<br />Find the story you’ll stay up for.</p>
+            <a class="cta" href="/discover">Find my next film <span aria-hidden="true">↗</span></a>
+          </div>
+          <div class="film-row">
+            <div>
+              <h4>The Odyssey</h4>
+              <p>2026 · Adventure</p>
+            </div>
+            <div>
+              <h4>Dune: Part Three</h4>
+              <p>2026 · Science fiction</p>
+            </div>
+            <span class="rating">8.4 <span aria-hidden="true">☆</span></span>
+          </div>
+        </div>
+        <p class="note">Unusual letterforms give the large headings more personality.</p>
+      </section>
+      <section
+        class="sample"
+        id="sample-04"
+        style="--display: 'Barlow Condensed'; --body: 'Barlow'; --weight: 600"
+      >
+        <div class="sample-label">
+          <span class="number">04</span>
+          <div>
+            <h2>Barlow Condensed <span>+ Barlow</span></h2>
+            <p>Bold & poster-like</p>
+          </div>
+        </div>
+        <div class="preview">
+          <header>
+            <a href="/" class="brand"
+              ><img src="/logo.svg" alt="" width="26" height="26" />One More Film</a
+            ><a class="search" href="/?q=Dune" aria-label="Search for Dune"
+              ><svg
+                width="17"
+                height="17"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                aria-hidden="true"
+              >
+                <circle cx="10.5" cy="10.5" r="6.5" />
+                <path d="m16 16 4 4" /></svg
+            ></a>
+          </header>
+          <nav aria-label="Barlow Condensed sample navigation">
+            <a href="/" aria-current="page">Home</a
+            ><a href="/discover"><span class="play">▶</span> For you</a
+            ><a href="/watchlist">Watchlist <span class="count">0</span></a>
+          </nav>
+          <div class="hero">
+            <span class="eyebrow">A film for tonight. A few for later.</span>
+            <h3>Find your<br />next great film.</h3>
+            <p>Pick your mood. Watch the trailers.<br />Find the story you’ll stay up for.</p>
+            <a class="cta" href="/discover">Find my next film <span aria-hidden="true">↗</span></a>
+          </div>
+          <div class="film-row">
+            <div>
+              <h4>The Odyssey</h4>
+              <p>2026 · Adventure</p>
+            </div>
+            <div>
+              <h4>Dune: Part Three</h4>
+              <p>2026 · Science fiction</p>
+            </div>
+            <span class="rating">8.4 <span aria-hidden="true">☆</span></span>
+          </div>
+        </div>
+        <p class="note">Tall display lettering paired with its wider, easy-reading sibling.</p>
+      </section>
+      <section
+        class="sample"
+        id="sample-05"
+        style="--display: 'Instrument Serif'; --body: 'Manrope'; --weight: 400"
+      >
+        <div class="sample-label">
+          <span class="number">05</span>
+          <div>
+            <h2>Instrument Serif <span>+ Manrope</span></h2>
+            <p>Editorial & cultured</p>
+          </div>
+        </div>
+        <div class="preview">
+          <header>
+            <a href="/" class="brand"
+              ><img src="/logo.svg" alt="" width="26" height="26" />One More Film</a
+            ><a class="search" href="/?q=Dune" aria-label="Search for Dune"
+              ><svg
+                width="17"
+                height="17"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                aria-hidden="true"
+              >
+                <circle cx="10.5" cy="10.5" r="6.5" />
+                <path d="m16 16 4 4" /></svg
+            ></a>
+          </header>
+          <nav aria-label="Instrument Serif sample navigation">
+            <a href="/" aria-current="page">Home</a
+            ><a href="/discover"><span class="play">▶</span> For you</a
+            ><a href="/watchlist">Watchlist <span class="count">0</span></a>
+          </nav>
+          <div class="hero">
+            <span class="eyebrow">A film for tonight. A few for later.</span>
+            <h3>Find your<br />next great film.</h3>
+            <p>Pick your mood. Watch the trailers.<br />Find the story you’ll stay up for.</p>
+            <a class="cta" href="/discover">Find my next film <span aria-hidden="true">↗</span></a>
+          </div>
+          <div class="film-row">
+            <div>
+              <h4>The Odyssey</h4>
+              <p>2026 · Adventure</p>
+            </div>
+            <div>
+              <h4>Dune: Part Three</h4>
+              <p>2026 · Science fiction</p>
+            </div>
+            <span class="rating">8.4 <span aria-hidden="true">☆</span></span>
+          </div>
+        </div>
+        <p class="note">High-contrast serif headlines with a restrained sans-serif interface.</p>
+      </section>
+    </main>
+    <footer class="footer">
+      Typography study. Barlow Condensed + Barlow is the selected pairing. Fonts from
+      <a href="https://fontsource.org/">Fontsource</a>; licenses included with the local files.
+      <a href="/">Back to the app</a>.
+    </footer>
+  </body>
+</html>

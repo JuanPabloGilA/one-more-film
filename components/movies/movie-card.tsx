@@ -3,11 +3,16 @@ import { GENRES, year, type Movie } from '@/lib/types';
 import { MovieLink } from '@/components/movies/movie-link';
 import { MoviePoster } from '@/components/movies/movie-poster';
 import { SaveButton } from '@/components/watchlist/save-button';
-export const MovieCard = ({ movie }: { movie: Movie }) => (
+export const MovieCard = ({ movie, priority = false }: { movie: Movie; priority?: boolean }) => (
   <article className="movie-card">
     <div className="poster-wrap">
       <MovieLink movieId={movie.id} ariaLabel={`View ${movie.title}`} className="poster-link">
-        <MoviePoster movieId={movie.id} path={movie.poster_path} title={movie.title} />
+        <MoviePoster
+          movieId={movie.id}
+          path={movie.poster_path}
+          title={movie.title}
+          priority={priority}
+        />
       </MovieLink>
       <SaveButton movie={movie} compact />
     </div>

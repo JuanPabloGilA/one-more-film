@@ -2,6 +2,7 @@ import { afterEach, test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   getMovie,
+  getPerson,
   getMovies,
   isDemoMode,
   normalizePage,
@@ -83,4 +84,12 @@ test('invalid movie IDs and pagination are bounded', async () => {
   assert.equal(normalizePage('2.7'), 1);
   assert.equal(normalizePage('bad'), 1);
   assert.equal(normalizePage('3'), 3);
+});
+
+test('invalid person IDs are rejected before requesting TMDB', async () => {
+  for (const id of [NaN, 0, -1, 1.5, Infinity])
+    await assert.rejects(
+      getPerson(id),
+      (error: unknown) => error instanceof TmdbError && error.status === 404,
+    );
 });

@@ -19,6 +19,7 @@ type Origin = {
   from: string;
   href: string;
   scrollY: number;
+  filmographyScrollTop?: number;
 };
 type Preferences = { genre: number; sort: string };
 const MovieNavigationContext = createContext<{
@@ -38,7 +39,9 @@ const MovieNavigationContext = createContext<{
 export const MovieNavigationProvider = ({ children }: { children: ReactNode }) => {
   const [origins, setOrigins] = useState<Record<number, Origin>>({});
   const pathname = usePathname();
-  const returnTarget = useRef<{ from: string; scrollY: number } | null>(null);
+  const returnTarget = useRef<Pick<Origin, 'from' | 'scrollY' | 'filmographyScrollTop'> | null>(
+    null,
+  );
   const [preferences, setPreferences] = useState<Record<string, Preferences>>({});
   const prepareReturn = (origin: Origin) => {
     returnTarget.current = origin;
@@ -48,6 +51,9 @@ export const MovieNavigationProvider = ({ children }: { children: ReactNode }) =
   useLayoutEffect(() => {
     const target = returnTarget.current;
     if (target && pathname === target.from) {
+      const filmography = document.getElementById('filmography-scroll');
+      if (filmography && target.filmographyScrollTop !== undefined)
+        filmography.scrollTop = target.filmographyScrollTop;
       window.scrollTo({ top: target.scrollY, behavior: 'instant' });
       returnTarget.current = null;
     }
@@ -56,10 +62,11 @@ export const MovieNavigationProvider = ({ children }: { children: ReactNode }) =
     const from = window.location.pathname;
     const href = from + window.location.search + window.location.hash;
     const scrollY = window.scrollY;
+    const filmographyScrollTop = document.getElementById('filmography-scroll')?.scrollTop;
     returnTarget.current = { from: `/movie/${movieId}`, scrollY: 0 };
     setOrigins((previous) => ({
       ...previous,
-      [movieId]: { posterName, artwork, from, href, scrollY },
+      [movieId]: { posterName, artwork, from, href, scrollY, filmographyScrollTop },
     }));
   };
   return (
@@ -87,9 +94,11 @@ export const BackToMovies = ({ movieId }: { movieId: number }) => {
       ? 'Back to your films'
       : origin.from === '/watchlist'
         ? 'Back to watchlist'
-        : origin.from.startsWith('/movie/')
-          ? 'Back to film'
-          : 'Back to discover';
+        : origin.from.startsWith('/person/')
+          ? 'Back to profile'
+          : origin.from.startsWith('/movie/')
+            ? 'Back to film'
+            : 'Back to discover';
   // An explicit route transition keeps both poster snapshots available. Restore
   // the catalogue position in the commit before the new snapshot is captured.
   return (

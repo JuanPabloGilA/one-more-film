@@ -1,4 +1,5 @@
 'use client';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ArrowDown, ArrowRight, ArrowUp, SlidersHorizontal, Star, X } from 'lucide-react';
 import { discoveryQuery } from '@/lib/discovery';
@@ -119,24 +120,26 @@ export const DiscoveryFeed = ({ onEdit }: { onEdit: () => void }) => {
     });
   };
   return (
-    <main id="main-content" className="film-discovery--feed">
+    <main id="main-content" className="film-discovery--feed dark">
       <div className="feed-topbar">
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="icon"
           className="feed-home"
           onClick={onEdit}
           aria-label="Back to preferences"
         >
           <X size={20} />
-        </button>
+        </Button>
         <div>
           <strong>For you</strong>
           <span>{session.demo ? 'Sample collection' : 'Trailers picked for you.'}</span>
         </div>
-        <button className="feed-preferences" onClick={onEdit}>
+        <Button variant="outline" className="feed-preferences" onClick={onEdit}>
           <SlidersHorizontal size={16} />
           <span>Preferences</span>
-        </button>
+        </Button>
       </div>
       <div
         className="film-feed"
@@ -192,7 +195,10 @@ export const DiscoveryFeed = ({ onEdit }: { onEdit: () => void }) => {
               </div>
               <h1>{movie.title}</h1>
               <div className="feed-actions">
-                <MovieLink movieId={movie.id} className="button button-primary">
+                <MovieLink
+                  movieId={movie.id}
+                  className={buttonVariants({ variant: 'default', className: 'button' })}
+                >
                   Film details
                   <ArrowRight size={18} />
                 </MovieLink>
@@ -224,18 +230,14 @@ export const DiscoveryFeed = ({ onEdit }: { onEdit: () => void }) => {
                 : 'Change your preferences for a different set of films.')}
           </p>
           {session.page < session.totalPages && (
-            <button
-              className="button button-primary"
-              onClick={() => void loadMore()}
-              disabled={loading}
-            >
+            <Button className="button" onClick={() => void loadMore()} disabled={loading}>
               {loading ? 'Loading…' : error ? 'Try again' : 'Load more films'}
               <ArrowDown size={18} />
-            </button>
+            </Button>
           )}
-          <button className="button button-secondary" onClick={onEdit}>
+          <Button variant="outline" className="button" onClick={onEdit}>
             Change preferences
-          </button>
+          </Button>
         </section>
       </div>
       <div className="feed-bottom">
@@ -248,27 +250,31 @@ export const DiscoveryFeed = ({ onEdit }: { onEdit: () => void }) => {
           Scroll to discover <ArrowDown size={14} />
         </span>
         <div>
-          <button
+          <Button
+            variant="outline"
+            size="icon"
             className="feed-arrow"
             aria-label="Previous film"
             disabled={!session.active && !endVisible}
             onClick={() => move(-1)}
           >
             <ArrowUp size={20} />
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
             className="feed-arrow"
             aria-label="Next film"
             disabled={endVisible}
             onClick={() => move(1)}
           >
             <ArrowDown size={20} />
-          </button>
+          </Button>
         </div>
       </div>
       {error && !endVisible && (
         <div className="feed-load-error" role="status">
-          More films couldn’t load. <button onClick={() => void loadMore()}>Retry</button>
+          More films couldn’t load. <Button onClick={() => void loadMore()}>Retry</Button>
         </div>
       )}
     </main>

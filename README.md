@@ -1,6 +1,6 @@
 # One More Film
 
-A movie discovery app built with Next.js App Router, React, TypeScript, Tailwind CSS and Radix Dialog. Browse daily trends, open film details, or choose your preferences and discover films through a scrolling trailer feed.
+A movie discovery app built with Next.js App Router, React, TypeScript, Tailwind CSS and shadcn/ui with Base UI. Browse daily trends, open film details, or choose your preferences and discover films through a scrolling trailer feed.
 
 ## Run locally
 
@@ -24,6 +24,7 @@ Without a token, `TMDB_DEMO_MODE=true` explicitly enables a labeled sample colle
 - English-language discovery by genre, era and runtime
 - Trailer feed with next-player preparation and native YouTube controls
 - Browser-local watchlists, synchronized between tabs
+- Light, dark, and system themes with a saved preference and compact mobile navigation
 - Shared-artwork navigation transitions, keyboard controls and reduced-motion support
 - Empty, missing-artwork, loading, not-found and upstream-failure states
 
@@ -35,22 +36,51 @@ components/
   discovery/               Preferences, feed, playback and discovery styles
   movies/                  Cards, artwork, navigation and detail dialogs
   watchlist/               Save button and browser storage provider
+  theme/                   Theme provider and shadcn appearance menu
+  ui/                      Shared shadcn/ui components (Base UI, Nova preset)
   brand.tsx                SVG identity
   header.tsx               Navigation and search
   explorer.tsx             Catalogue filters and sorting
 lib/                       TMDB requests, domain types and pure helpers
 tests/                     Node test runner + TypeScript regression tests
-public/                    Production SVG assets only
+public/                    SVG identity and downloadable media kit
+scripts/                   Reproducible media kit generation
 ```
 
 The structure follows features without adding service/repository layers. No database, Prisma, tRPC or background job infrastructure is needed: TMDB owns movie data, localStorage holds saved films, and React context keeps the active discovery session across navigation.
+
+## UI components and build tooling
+
+Shared controls come from shadcn/ui 4.23 (Base UI, Nova): buttons, toggles, radio groups, native selects, inputs, dialogs, dropdown menus and cards. `components.json` preserves the registry configuration. Brand colors are mapped to semantic shadcn tokens, and Barlow Condensed headings and Barlow body text stay local. Edit the shared primitives instead of adding new per-page control CSS. Default buttons and toggles use 44 px touch targets.
+
+Next.js 16 uses Turbopack for both `next dev` and `next build`. Next.js 16.4.6, React 19.3.1 and Tailwind CSS 4.3.5 were verified against the current stable npm releases during this pass. A single app does not need a Turborepo task runner or a monorepo. The shadcn CLI is a development dependency; the scoped minimatch override fixes its transitive advisory without downgrading the CLI.
+
+## Themes
+
+Use the sun or moon button beside search to choose Light, Dark, or System. Light is the default. `next-themes` saves the choice under `one-more-film-theme`, applies it before hydration, and follows device appearance when System is selected. The provider follows [shadcn's Next.js theme setup](https://ui.shadcn.com/docs/dark-mode/next).
+
+Theme colors live in `app/globals.css`. Shared semantic tokens drive both the existing layout and shadcn components. Fixed dark film-player surfaces and logo previews retain their intended contrast. The mobile navigation keeps its original 380 px maximum width with a compact 42 px total height.
+
+## Media kit
+
+Visit `/media-kit` for the preview and downloads, or open `public/one-more-film-media-kit.zip`. It includes six SVG logo variants, two SVG social assets, four product screenshots, color values, reusable copy and a three-page PDF. Movie artwork in screenshots belongs to its respective rights holders.
+
+To regenerate the assets after updating the approved screenshots:
+
+```sh
+python3 -m venv .venv-media-kit
+.venv-media-kit/bin/pip install -r scripts/media-kit-requirements.txt
+.venv-media-kit/bin/python scripts/build-media-kit.py
+```
+
+The script uses the installed Barlow font family and keeps the logo assets as vectors. No image generation is used.
 
 ## Data and performance decisions
 
 - **Server data:** catalogue and detail pages call TMDB directly. `lib/tmdb.ts` handles authentication, eight-second timeouts, five-minute fetch caching and safe errors. Credits, videos and recommendations arrive in one detail request, deduplicated with React `cache`.
 - **Small client payloads:** `toMovie` selects the fields needed by cards and saved films. Cast, videos and unrelated TMDB fields stay out of watchlist storage and Save button props. Old saved items are sanitized when read; the original versioned storage key is retained so the rename does not lose saves.
 - **Load on demand:** discovery styles belong to `/discover`; the feed and YouTube player code load after preference submission. Movie routes prefetch on hover, focus or touch instead of fetching every film's details on grid mount.
-- **Images and fonts:** responsive `next/image` sizes, AVIF/WebP, priority hero artwork and one locally hosted Instrument Sans font.
+- **Images and fonts:** responsive `next/image` sizes, AVIF/WebP, priority hero artwork and locally hosted Barlow and Barlow Condensed fonts.
 - **Motion:** only matching artwork participates in shared View Transitions. Scroll position is restored before the destination snapshot. Unsupported browsers use normal navigation; reduced-motion preferences disable animations.
 
 ## Discovery behavior and limits
@@ -84,13 +114,23 @@ npx lighthouse@13.6.0 http://localhost:3001/ \
 
 Reports, screenshots and earlier design explorations live in the git-ignored `review/` directory. Local Lighthouse scores vary and do not represent field Core Web Vitals or the cost of a playing YouTube feed.
 
-### Latest local audit
+### Theme update validation
 
-The same-machine mobile production comparison measured **94 → 95 performance**, with **100 accessibility, best practices and SEO** in both runs. LCP was 3.1 → 3.0 seconds; CLS remained 0. This one-point difference is within normal run-to-run variation, not evidence of a consistent performance gain.
+The theme and compact navigation update passed formatting, TypeScript, all 23 tests, and a production build. Browser checks covered Light/Dark/System selection, persistence after reload, the device preference, Escape/focus restoration, and layout at 320 px and 390 px. No browser errors were logged. The mobile light-mode homepage measured **90 performance and 100 accessibility, best practices, and SEO** in Lighthouse 13.6.0; this is a single local lab run, not a dark-mode or field audit. Its report is `review/lighthouse-themes-home.report.html`.
 
-The checked movie detail HTML/RSC response fell from **163,239 to 91,815 bytes (44% smaller)** after trimming client props. Homepage transfer was approximately **374 → 371 KiB**. Reports: `review/lighthouse-audit-before.report.html` and `review/lighthouse-audit-after.report.html`. These measurements use live TMDB data and can change with the featured films.
+### Previous local audit
 
-The audit passed 18 regression tests, TypeScript, formatting and the production build. Browser checks covered search, save/reload/remove, full cast, native trailer playback, returning to the same feed position, preserved preferences and portrait/landscape layouts. No console warnings or errors appeared during that session.
+On 21 November 2026, Lighthouse 13.6.0 covered eight page cases on mobile and desktop: home, search, preferences, empty watchlist, two movie details (including missing portraits), a person profile, and the media kit. The homepage and person profile were retested after the mobile bottom navigation and profile loading fixes.
+
+The latest local production results range from **90 to 100 performance on mobile** and **100 on desktop**. All checked pages scored **100 accessibility and best practices**. SEO was **100 except one mobile profile run at 91**, where Lighthouse missed the streamed description; the desktop profile run scored 100. Next.js metadata streaming remains enabled. These are lab runs with live TMDB data, not field Core Web Vitals, and scores vary with caching and network conditions.
+
+The changes fix contrast on muted text, remove cramped missing-image labels, prioritize above-the-fold search posters, render watchlist guidance immediately, and reserve space while profiles load. Search performance moved from 95 to 96, watchlist from 94 to 100, and profile layout shift fell from 0.155 in the intermediate run to 0. Homepage performance measured 90 after these changes versus 95 in the initial baseline; no homepage performance gain is claimed.
+
+The older public Vercel deployment was also checked separately on home, preferences, watchlist, and movie details. All four standard categories scored 100 on mobile and desktop in this run. The local changes have not been deployed.
+
+The comparison report is `review/lighthouse-audit/index.html`; full JSON and HTML reports are in its `before`, `after`, `verified`, and `live` folders. Reports are local review artifacts and are ignored by Git. Navigation audits do not measure active YouTube playback or every user state.
+
+Validation passed formatting, TypeScript, all 23 regression tests, and the production build. Browser checks covered missing portraits, links from full cast to profiles, mobile navigation at 320 px and 390 px, active states, and hiding navigation during the trailer feed.
 
 ## Deployment
 
@@ -101,3 +141,7 @@ Deploy as a Next.js application on Vercel or another Node-compatible host. Confi
 Movie data and artwork: [TMDB](https://www.themoviedb.org). This product uses the TMDB API but is not endorsed or certified by TMDB.
 
 Design refinement follows [Unslop](https://github.com/heydamir/unslop) by Damir Sokolovsky ([@heydamir](https://x.com/heydamir)), licensed CC BY 4.0. The skill was applied to typography, spacing, color, copy and interaction treatment. The logo is an editable SVG.
+
+### Film details and people
+
+Movie details include production facts, key crew credits, themes and collection links. Unknown budgets and box-office figures are labelled as unreported. Cast and crew link to dedicated `/person/[id]` profile pages with biographies, personal details and a compact, scrollable filmography with pagination. Credits combine acting and production roles without duplicate films. Film and person data remain server-fetched. Long biographies expand inline with See more and See less.

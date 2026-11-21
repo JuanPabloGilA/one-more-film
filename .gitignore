@@ -10,3 +10,5 @@ dist/
 
 # Local audit reports and archived design explorations
 review/
+
+.venv-media-kit/

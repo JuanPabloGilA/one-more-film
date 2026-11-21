@@ -1,4 +1,5 @@
 'use client';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { useEffect, useRef, useState } from 'react';
 import { ExternalLink, Film } from 'lucide-react';
 import { loadYouTube, type YouTubePlayer } from '@/lib/youtube';
@@ -50,15 +51,16 @@ export const FeedTrailer = ({
       <div className="feed-video-message" role="status">
         <Film size={28} />
         <p>{error}</p>
-        <button
-          className="button button-secondary"
+        <Button
+          variant="outline"
+          className="button"
           onClick={() => {
             setError('');
             setAttempt((a) => a + 1);
           }}
         >
           Try again
-        </button>
+        </Button>
       </div>
     );
   if (trailer === undefined)
@@ -199,7 +201,7 @@ const TrailerPlayer = ({
           <Film size={28} />
           <p>{error}</p>
           <a
-            className="button button-secondary"
+            className={buttonVariants({ variant: 'outline', className: 'button' })}
             href={`https://www.youtube.com/watch?v=${videoKey}`}
             target="_blank"
             rel="noreferrer"

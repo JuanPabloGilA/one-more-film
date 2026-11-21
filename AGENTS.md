@@ -11,3 +11,4 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## User design preferences
 
 Create logos as editable SVGs. Never use image generation for logos.
+Avoid long dashes in user-facing text and documentation.
