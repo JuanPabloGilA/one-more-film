@@ -26,7 +26,7 @@ export const PersonBiography = ({ text }: { text: string }) => {
       {canExpand && (
         <Button
           variant="link"
-          className="gap-2 px-0 text-[var(--cerulean)]"
+          className="gap-2 px-0 text-[var(--brand-accent)]"
           aria-expanded={expanded}
           aria-controls={contentId}
           onClick={() => setExpanded((value) => !value)}

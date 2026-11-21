@@ -1,10 +1,17 @@
 'use client';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { useMemo } from 'react';
-import { NativeSelect } from '@/components/ui/native-select';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Toggle } from '@/components/ui/toggle';
 import Link from 'next/link';
-import { Search, SlidersHorizontal } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { GENRES, type MovieList } from '@/lib/types';
 import { useMovieNavigation } from '@/components/movies/movie-navigation';
 import { MovieCard } from '@/components/movies/movie-card';
@@ -71,27 +78,40 @@ export const Explorer = ({
         )}
       </div>
       <div className="filter-bar">
-        <div className="genre-filters">
-          <SlidersHorizontal size={16} strokeWidth={1.5} />
-          <label className="sr-only" htmlFor="genre">
-            Filter genres on this page
-          </label>
-
-          <NativeSelect
-            id="genre"
+        <div className="catalogue-filter">
+          <label htmlFor="genre">Genre</label>
+          <Select
+            items={[
+              { value: 0, label: 'All genres' },
+              ...genres.map((id) => ({ value: id, label: GENRES[id] })),
+            ]}
             value={genre}
-            onChange={(event) => {
-              const value = Number(event.target.value);
-              setGenre(value);
+            onValueChange={(value) => {
+              if (value !== null) setGenre(value);
             }}
           >
-            <option value={0}>All genres</option>
-            {genres.map((id) => (
-              <option key={id} value={id}>
-                {GENRES[id]}
-              </option>
-            ))}
-          </NativeSelect>
+            <SelectTrigger id="genre" className="w-full data-[size=default]:h-11">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent
+              align="start"
+              alignItemWithTrigger={false}
+              className="max-h-[min(320px,var(--available-height))] min-w-48"
+            >
+              <SelectGroup>
+                <SelectItem value={0} className="min-h-11">
+                  All genres
+                </SelectItem>
+                {genres.map((id) => (
+                  <SelectItem key={id} value={id} className="min-h-11">
+                    {GENRES[id]}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="genre-shortcuts" aria-label="Quick genre filters">
           {[28, 18, 35, 878]
             .filter((id) => genres.includes(id))
             .map((id) => (
@@ -105,21 +125,36 @@ export const Explorer = ({
               </Toggle>
             ))}
         </div>
-        <div className="sort-control">
-          <span>Sort this page</span>
-
-          <NativeSelect
-            aria-label="Sort movies on this page"
+        <div className="catalogue-filter">
+          <label htmlFor="movie-sort">Sort by</label>
+          <Select
+            items={[
+              { value: 'trending', label: query ? 'Relevance' : 'Popularity' },
+              { value: 'rating', label: 'Top rated' },
+              { value: 'newest', label: 'Newest' },
+            ]}
             value={sort}
-            onChange={(event) => {
-              const value = event.target.value;
-              setSort(value);
+            onValueChange={(value) => {
+              if (value !== null) setSort(value);
             }}
           >
-            <option value="trending">{query ? 'Relevance' : 'Popularity'}</option>
-            <option value="rating">Top rated</option>
-            <option value="newest">Newest</option>
-          </NativeSelect>
+            <SelectTrigger id="movie-sort" className="w-full data-[size=default]:h-11">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="end" alignItemWithTrigger={false}>
+              <SelectGroup>
+                <SelectItem value="trending" className="min-h-11">
+                  {query ? 'Relevance' : 'Popularity'}
+                </SelectItem>
+                <SelectItem value="rating" className="min-h-11">
+                  Top rated
+                </SelectItem>
+                <SelectItem value="newest" className="min-h-11">
+                  Newest
+                </SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
       </div>
       <div>
