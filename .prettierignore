@@ -1,0 +1,9 @@
+node_modules
+.next
+package-lock.json
+out
+dist
+next-env.d.ts
+
+# Local audit reports and archived design explorations
+review/

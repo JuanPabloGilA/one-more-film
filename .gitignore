@@ -1,0 +1,12 @@
+node_modules/
+.next/
+out/
+dist/
+.env*
+!.env.example
+*.tsbuildinfo
+.DS_Store
+.vercel/
+
+# Local audit reports and archived design explorations
+review/
