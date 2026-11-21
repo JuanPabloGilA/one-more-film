@@ -1,33 +1,42 @@
 import { discoveryQuery, type DiscoveryPreferences } from '@/lib/discovery';
+import { fetchJson } from '@/lib/fetch-json';
+import { TMDB_MAX_PAGE } from '@/lib/params';
 import type { MovieList } from '@/lib/types';
 
+// Discovery results are filtered after TMDB pages them, so a page can come back empty.
+const MAX_ATTEMPTS = 3;
+
+/**
+ * Loads the next page with at least one unseen film, skipping sparse or duplicate-only pages
+ * but making at most three requests per interaction. The returned `page` is TMDB's cursor,
+ * so a manual retry continues from where this call stopped.
+ */
 export const requestFilms = async (
   preferences: DiscoveryPreferences,
-  page: number,
+  firstPage: number,
   signal: AbortSignal,
   seen = new Set<number>(),
   fetcher: typeof fetch = fetch,
 ): Promise<MovieList> => {
-  // Skip sparse or duplicate-only pages, but bound each interaction to three requests.
-  // The returned page remains TMDB's cursor so a manual retry can continue from there.
-  for (let attempt = 0; ; attempt++) {
+  let page = firstPage;
+  for (let attempt = 1; ; attempt++) {
     signal.throwIfAborted();
-    const response = await fetcher(`/api/discover?${discoveryQuery(preferences, page)}`, {
-      signal,
-    });
-    const data = await response.json();
+    const data = await fetchJson<MovieList>(
+      `/api/discover?${discoveryQuery(preferences, page)}`,
+      'Could not load films. Please try again.',
+      { signal },
+      fetcher,
+    );
     signal.throwIfAborted();
-    if (!response.ok) throw new Error(data.error || 'Could not load films. Please try again.');
-    const result: MovieList = data;
     const ids = new Set(seen);
-    const results = result.results.filter((movie) => {
+    const results = data.results.filter((movie) => {
       if (ids.has(movie.id)) return false;
       ids.add(movie.id);
       return true;
     });
-    const total_pages = Math.min(500, result.total_pages);
-    if (results.length || page >= total_pages || attempt === 2)
-      return { ...result, results, page, total_pages };
+    const totalPages = Math.min(TMDB_MAX_PAGE, data.total_pages);
+    if (results.length || page >= totalPages || attempt === MAX_ATTEMPTS)
+      return { ...data, results, page, total_pages: totalPages };
     page++;
   }
 };

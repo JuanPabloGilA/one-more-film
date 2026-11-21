@@ -2,10 +2,8 @@
 import { useState, type ReactNode } from 'react';
 import Link, { useLinkStatus } from 'next/link';
 import { useMovieNavigation, type ArtworkKind } from '@/components/movies/movie-navigation';
+import { routes } from '@/lib/links';
 
-// Fetch the full dynamic route on intent, rather than fetching every movie's
-// cast, videos and recommendations when a grid appears. This reduces loading
-// time for the film the user is about to open.
 const PendingIndicator = () => {
   const { pending } = useLinkStatus();
   return (
@@ -30,19 +28,22 @@ export const MovieLink = ({
   posterName?: string;
   artwork?: ArtworkKind;
 }) => {
+  // Prefetch on intent instead of on render: a grid would otherwise fetch the cast,
+  // videos and recommendations of every film it shows.
   const [prefetch, setPrefetch] = useState(false);
+  const enablePrefetch = () => setPrefetch(true);
   const { remember } = useMovieNavigation();
   return (
     <Link
-      href={`/movie/${movieId}`}
+      href={routes.movie(movieId)}
       scroll={false}
       onNavigate={() => remember(movieId, posterName ?? `poster-${movieId}`, artwork)}
       className={className}
       aria-label={ariaLabel}
       prefetch={prefetch}
-      onTouchStart={() => setPrefetch(true)}
-      onMouseEnter={() => setPrefetch(true)}
-      onFocus={() => setPrefetch(true)}
+      onTouchStart={enablePrefetch}
+      onMouseEnter={enablePrefetch}
+      onFocus={enablePrefetch}
     >
       {children}
       <PendingIndicator />

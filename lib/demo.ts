@@ -1,5 +1,8 @@
-import { GENRES, type Movie, type MovieDetails } from './types';
-// A deliberately fixed sample catalogue. Never presented as live trending data.
+import { GENRES } from './genres';
+import type { Movie, MovieDetails, MovieList } from './types';
+
+// A deliberately fixed sample catalogue, used only when TMDB_DEMO_MODE opts in.
+// Never presented as live trending data.
 export const demoMovies: Movie[] = [
   {
     id: 693134,
@@ -106,31 +109,48 @@ export const demoMovies: Movie[] = [
     genre_ids: [16, 10751, 14],
   },
 ];
+const DUNE_PART_TWO = 693134;
+// Only one sample film carries full details, enough to demo the detail page and trailer.
+const demoExtras: Partial<Record<number, Pick<MovieDetails, 'tagline' | 'runtime' | 'videos'>>> = {
+  [DUNE_PART_TWO]: {
+    tagline: 'Long live the fighters.',
+    runtime: 167,
+    videos: {
+      results: [
+        {
+          key: 'Way9Dexny3w',
+          site: 'YouTube',
+          type: 'Trailer',
+          official: true,
+          name: 'Official trailer',
+        },
+      ],
+    },
+  },
+};
+
 export const demoDetail = (id: number): MovieDetails | null => {
   const movie = demoMovies.find((item) => item.id === id);
   if (!movie) return null;
   return {
     ...movie,
-    tagline: id === 693134 ? 'Long live the fighters.' : '',
-    runtime: id === 693134 ? 167 : null,
-    genres: movie.genre_ids.map((id) => ({ id, name: GENRES[id] })),
-    original_language: id === 129 ? 'ja' : id === 496243 ? 'ko' : 'en',
+    tagline: '',
+    runtime: null,
+    videos: { results: [] },
+    ...demoExtras[id],
+    genres: movie.genre_ids.map((genreId) => ({ id: genreId, name: GENRES[genreId] })),
+    original_language: movie.original_language ?? 'en',
     credits: { cast: [], crew: [] },
-    videos: {
-      results:
-        id === 693134
-          ? [
-              {
-                key: 'Way9Dexny3w',
-                site: 'YouTube',
-                type: 'Trailer',
-                official: true,
-                name: 'Official trailer',
-              },
-            ]
-          : [],
-    },
     recommendations: { results: demoMovies.filter((item) => item.id !== id).slice(0, 6) },
     demo: true,
   };
 };
+
+/** The demo catalogue fits on one page; later pages are empty. */
+export const demoPage = (results: Movie[], page: number): MovieList => ({
+  results: page === 1 ? results : [],
+  page,
+  total_pages: 1,
+  total_results: results.length,
+  demo: true,
+});

@@ -1,42 +1,46 @@
 import { ViewTransition } from 'react';
-import Link from 'next/link';
-import { MovieInformation } from '@/components/movies/movie-information';
-import { MovieBackdrop } from '@/components/movies/movie-backdrop';
-import { MoviePoster } from '@/components/movies/movie-poster';
-import { BackToMovies } from '@/components/movies/movie-navigation';
-import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
 import { Star } from 'lucide-react';
-import { getMovie, TmdbError } from '@/lib/tmdb';
-import { runtimeLabel, year } from '@/lib/types';
-import { toMovie } from '@/lib/movie';
-import { selectTrailer } from '@/lib/trailer';
-import { PersonPortrait } from '@/components/people/person-portrait';
-import { SaveButton } from '@/components/watchlist/save-button';
-import { MovieCard } from '@/components/movies/movie-card';
-import { Trailer } from '@/components/movies/trailer';
+import { Notice } from '@/components/notice';
+import { SectionHeading } from '@/components/section-heading';
 import { FullCast } from '@/components/movies/full-cast';
-const loadMovie = async (id: string) => {
-  try {
-    return await getMovie(/^\d+$/.test(id) ? Number(id) : NaN);
-  } catch (error) {
-    if (error instanceof TmdbError && error.status === 404) notFound();
-    throw error;
-  }
-};
-export const generateMetadata = async ({ params }: { params: Promise<{ id: string }> }) => {
-  const movie = await loadMovie((await params).id);
+import { MovieBackdrop } from '@/components/movies/movie-backdrop';
+import { MovieCard } from '@/components/movies/movie-card';
+import { MovieInformation } from '@/components/movies/movie-information';
+import { BackToMovies } from '@/components/movies/movie-navigation';
+import { MoviePoster } from '@/components/movies/movie-poster';
+import { Trailer } from '@/components/movies/trailer';
+import { CastCard } from '@/components/people/cast-card';
+import { PeopleLinks } from '@/components/people/people-links';
+import { SaveButton } from '@/components/watchlist/save-button';
+import { directors } from '@/lib/details';
+import { languageName, ratingLabel, runtimeLabel, year } from '@/lib/format';
+import { loadById } from '@/lib/load-by-id';
+import { toCastMember, toMovie } from '@/lib/movie';
+import { getMovie } from '@/lib/tmdb';
+import { selectTrailer } from '@/lib/trailer';
+import type { CastMember, Movie } from '@/lib/types';
+
+const CAST_PREVIEW = 6;
+const RECOMMENDATIONS = 6;
+
+type Props = { params: Promise<{ id: string }> };
+
+export const generateMetadata = async ({ params }: Props): Promise<Metadata> => {
+  const movie = await loadById((await params).id, getMovie);
   return { title: movie.title, description: movie.overview };
 };
-const MoviePage = async ({ params }: { params: Promise<{ id: string }> }) => {
-  const movie = await loadMovie((await params).id);
-  const directors = movie.credits.crew.filter((person) => person.job === 'Director');
+
+const MoviePage = async ({ params }: Props) => {
+  const movie = await loadById((await params).id, getMovie);
   const trailer = selectTrailer(movie.videos.results);
+  const directedBy = directors(movie.credits.crew);
   return (
     <main id="main-content">
       {movie.demo && (
-        <div className="demo-notice">
+        <Notice>
           Preview collection <span>·</span> Sample movie details. TMDB connection pending.
-        </div>
+        </Notice>
       )}
       <section className="detail-hero">
         <div className="section-shell detail-content">
@@ -69,7 +73,7 @@ const MoviePage = async ({ params }: { params: Promise<{ id: string }> }) => {
                   <div className="hero-meta">
                     <span className="score">
                       <Star size={16} strokeWidth={1.5} />
-                      {movie.vote_count ? movie.vote_average.toFixed(1) : 'Not rated'}
+                      {ratingLabel(movie, 'Not rated')}
                     </span>
                     <span>{year(movie.release_date)}</span>
                     <span>{runtimeLabel(movie.runtime)}</span>
@@ -88,29 +92,16 @@ const MoviePage = async ({ params }: { params: Promise<{ id: string }> }) => {
                   <div>
                     <dt>Director</dt>
                     <dd>
-                      {directors.length
-                        ? directors.map((person, index) => (
-                            <span key={person.id}>
-                              {index > 0 && ', '}
-                              <Link className="person-link" href={`/person/${person.id}`}>
-                                {person.name}
-                              </Link>
-                            </span>
-                          ))
-                        : 'Not available'}
+                      {directedBy.length ? <PeopleLinks people={directedBy} /> : 'Not available'}
                     </dd>
                   </div>
                   <div>
                     <dt>Original language</dt>
-                    <dd>
-                      {new Intl.DisplayNames(['en'], { type: 'language' }).of(
-                        movie.original_language,
-                      ) || movie.original_language}
-                    </dd>
+                    <dd>{languageName(movie.original_language)}</dd>
                   </div>
                   <div>
                     <dt>TMDB votes</dt>
-                    <dd>{movie.vote_count.toLocaleString()}</dd>
+                    <dd>{movie.vote_count.toLocaleString('en-US')}</dd>
                   </div>
                 </dl>
               </div>
@@ -118,67 +109,48 @@ const MoviePage = async ({ params }: { params: Promise<{ id: string }> }) => {
           </div>
         </div>
       </section>
-      {movie.credits.cast.length > 0 && (
-        <section className="section-shell cast-section">
-          <div className="section-heading">
-            <div>
-              <span className="eyebrow">The people behind the film</span>
-              <h2>Meet the cast</h2>
-            </div>
-            {movie.credits.cast.length > 6 && (
-              <FullCast
-                title={movie.title}
-                cast={movie.credits.cast.map(({ id, name, character, profile_path }) => ({
-                  id,
-                  name,
-                  character,
-                  profile_path,
-                }))}
-              />
-            )}
-          </div>
-          <div className="cast-grid">
-            {movie.credits.cast.slice(0, 6).map((person) => (
-              <Link
-                key={person.id}
-                href={`/person/${person.id}`}
-                className="cast-card cast-person-link"
-              >
-                <div className="cast-photo">
-                  <PersonPortrait
-                    path={person.profile_path}
-                    name={person.name}
-                    alt=""
-                    sizes="(max-width: 760px) 64px, 72px"
-                  />
-                </div>
-                <h3>{person.name}</h3>
-                <p>{person.character}</p>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
+      <CastSection cast={movie.credits.cast.map(toCastMember)} title={movie.title} />
       <MovieInformation movie={movie} />
-      {movie.recommendations.results.length > 0 && (
-        <section className="section-shell recommendations">
-          <div className="section-heading">
-            <div>
-              <span className="eyebrow">More to discover</span>
-              <h2>You might also like</h2>
-            </div>
-          </div>
-          <div className="movie-grid">
-            {movie.recommendations.results
-              .filter((item) => item.id !== movie.id)
-              .slice(0, 6)
-              .map((item) => (
-                <MovieCard key={item.id} movie={item} />
-              ))}
-          </div>
-        </section>
-      )}
+      <Recommendations
+        movies={movie.recommendations.results.filter((item) => item.id !== movie.id)}
+      />
     </main>
   );
 };
 export default MoviePage;
+
+const CastSection = ({ cast, title }: { cast: CastMember[]; title: string }) => {
+  if (!cast.length) return null;
+  return (
+    <section className="section-shell cast-section">
+      <SectionHeading eyebrow="The people behind the film" title="Meet the cast">
+        {cast.length > CAST_PREVIEW && <FullCast title={title} cast={cast} />}
+      </SectionHeading>
+      <div className="cast-grid">
+        {cast.slice(0, CAST_PREVIEW).map((person, index) => (
+          // One actor can play several roles, so the ID alone is not a unique key.
+          <CastCard
+            key={`${person.id}-${index}`}
+            person={person}
+            className="cast-card"
+            sizes="(max-width: 760px) 64px, 72px"
+          />
+        ))}
+      </div>
+    </section>
+  );
+};
+
+const Recommendations = ({ movies }: { movies: Movie[] }) => {
+  if (!movies.length) return null;
+  return (
+    <section className="section-shell recommendations">
+      <SectionHeading eyebrow="More to discover" title="You might also like" />
+      <div className="movie-grid">
+        {movies.slice(0, RECOMMENDATIONS).map((movie) => (
+          <MovieCard key={movie.id} movie={movie} />
+        ))}
+      </div>
+    </section>
+  );
+};

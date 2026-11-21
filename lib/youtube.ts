@@ -30,7 +30,14 @@ declare global {
     onYouTubeIframeAPIReady?: () => void;
   }
 }
+/** YT.PlayerState.PLAYING */
+export const PLAYER_STATE_PLAYING = 1;
+const API_TIMEOUT_MS = 12_000;
+
+// One shared script load; reset on failure so a later call can retry.
 let apiPromise: Promise<YouTubeAPI> | null = null;
+
+/** Loads the YouTube IFrame Player API once, resolving when `window.YT` is ready. */
 export const loadYouTube = () => {
   if (window.YT?.Player) return Promise.resolve(window.YT);
   if (apiPromise) return apiPromise;
@@ -40,7 +47,7 @@ export const loadYouTube = () => {
       apiPromise = null;
       script.remove();
       reject(new Error('The video player took too long to load.'));
-    }, 12000);
+    }, API_TIMEOUT_MS);
     window.onYouTubeIframeAPIReady = () => {
       window.clearTimeout(timeout);
       if (window.YT) resolve(window.YT);

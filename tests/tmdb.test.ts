@@ -1,14 +1,7 @@
 import { afterEach, test } from 'node:test';
 import assert from 'node:assert/strict';
-import {
-  getMovie,
-  getPerson,
-  getMovies,
-  isDemoMode,
-  normalizePage,
-  tmdbRequest,
-  TmdbError,
-} from '../lib/tmdb';
+import { getMovie, getPerson, getMovies, isDemoMode, tmdbRequest, TmdbError } from '../lib/tmdb';
+import { normalizePage } from '../lib/params';
 const originalToken = process.env.TMDB_READ_ACCESS_TOKEN;
 const originalDemo = process.env.TMDB_DEMO_MODE;
 afterEach(() => {

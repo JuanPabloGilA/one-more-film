@@ -1,4 +1,4 @@
-import type { Movie } from './types';
+import type { CastMember, Movie } from './types';
 
 // Keep API-only fields (especially credits and videos) out of client props and storage.
 export const toMovie = (movie: Movie): Movie => ({
@@ -12,4 +12,12 @@ export const toMovie = (movie: Movie): Movie => ({
   vote_average: movie.vote_average,
   vote_count: movie.vote_count,
   genre_ids: movie.genre_ids,
+});
+
+// Cast credits from TMDB carry a dozen unused fields; send only these to client components.
+export const toCastMember = ({ id, name, character, profile_path }: CastMember): CastMember => ({
+  id,
+  name,
+  character,
+  profile_path,
 });

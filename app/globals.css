@@ -21,6 +21,9 @@
   --display: var(--font-barlow-condensed), 'Arial Narrow', sans-serif;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --site-header-height: 80px;
+  --selection: #bce7f8;
+  --shadow-color: rgb(0 23 31 / 8%);
+  --shadow-color-strong: rgb(0 23 31 / 16%);
   color-scheme: light;
 }
 :root,
@@ -66,19 +69,6 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--sans);
   --font-heading: var(--display);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -162,7 +152,7 @@
     outline-offset: 4px;
   }
   ::selection {
-    background: #bce7f8;
+    background: var(--selection);
     color: var(--ink-black);
   }
   svg {
@@ -212,7 +202,7 @@
     z-index: 100;
     padding: 12px 20px;
     background: var(--ink-black);
-    color: white;
+    color: var(--white);
   }
   .skip-link:focus {
     top: 16px;
@@ -228,7 +218,7 @@
     z-index: 40;
     background: color-mix(in srgb, var(--panel) 96%, transparent);
     backdrop-filter: blur(12px);
-    box-shadow: 0 1px 0 rgb(0 23 31 / 8%);
+    box-shadow: 0 1px 0 var(--shadow-color);
   }
   .site-header {
     height: var(--site-header-height);
@@ -289,7 +279,7 @@
   }
   .nav-link.active {
     background: var(--panel);
-    box-shadow: 0 1px 3px rgb(0 23 31 / 8%);
+    box-shadow: 0 1px 3px var(--shadow-color);
     font-weight: 600;
   }
   .mobile-nav-icon {
@@ -403,7 +393,7 @@
     flex-shrink: 0;
     border-radius: 50%;
     background: var(--deep-space-blue);
-    color: white;
+    color: var(--white);
     transition: background 180ms;
   }
   .marquee-circle:hover {
@@ -821,7 +811,7 @@
     gap: 16px;
     min-height: 320px;
     padding: 40px 24px;
-    background: white;
+    background: var(--panel);
     border: 1px solid var(--line);
     border-radius: 2px;
     margin-block: 24px;
@@ -851,33 +841,6 @@
   .cast-count {
     color: var(--text-muted);
     font-variant-numeric: tabular-nums;
-  }
-  .full-cast-dialog {
-    display: flex;
-    flex-direction: column;
-    max-height: min(720px, calc(100dvh - 32px));
-    padding: 0;
-    overflow: hidden;
-  }
-  .full-cast-header {
-    flex-shrink: 0;
-    padding: 24px 72px 24px 24px;
-    border-bottom: 1px solid var(--line);
-  }
-  .full-cast-header .dialog-title {
-    margin: 0 0 8px;
-    font-size: 24px;
-  }
-  .full-cast-header p {
-    margin: 0;
-    font-size: 13px;
-    color: var(--text-secondary);
-  }
-  .full-cast-dialog .dialog-close {
-    width: 44px;
-    height: 44px;
-    display: grid;
-    place-items: center;
   }
   .full-cast-list {
     display: grid;
@@ -943,7 +906,7 @@
     z-index: 60;
     padding: 12px 20px;
     background: var(--ink-black);
-    color: white;
+    color: var(--white);
     font: 13px var(--sans);
     border-radius: 2px;
     opacity: 0;
@@ -1032,9 +995,6 @@
     .marquee-next {
       gap: 16px;
     }
-    .genre-chip {
-      display: none;
-    }
     .marquee-title {
       gap: 20px;
     }
@@ -1062,7 +1022,7 @@
       padding-inline: 20px;
       background: color-mix(in srgb, var(--panel) 96%, transparent);
       backdrop-filter: blur(12px);
-      box-shadow: 0 1px 0 rgb(0 23 31 / 8%);
+      box-shadow: 0 1px 0 var(--shadow-color);
     }
     .brand {
       font-size: 18px;
@@ -1091,7 +1051,7 @@
       border: 1px solid var(--line);
       border-radius: 14px;
       background: var(--panel);
-      box-shadow: 0 6px 24px rgb(0 23 31 / 16%);
+      box-shadow: 0 6px 24px var(--shadow-color-strong);
     }
     .site-header nav .nav-link {
       position: relative;
@@ -1381,14 +1341,13 @@
 
   /* Consistent, tactile controls across discovery, cards and details. */
   .button:active:not(:disabled),
-  .save-button:active:not(:disabled),
   .feed-arrow:active:not(:disabled) {
     transform: scale(0.97);
   }
   .marquee-caption .discovery-cta {
     padding: 12px 20px;
     margin: 0;
-    color: white;
+    color: var(--white);
     font-size: 13px;
   }
   .button.discovery-cta {
@@ -1647,6 +1606,7 @@
     color: var(--brand-accent);
   }
   .filmography-pagination {
+    margin-top: 0;
     display: flex;
     gap: 24px;
     justify-content: center;

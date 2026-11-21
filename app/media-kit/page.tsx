@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import { Download, ArrowUpRight } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
+import { PALETTE } from '@/lib/brand';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export const metadata: Metadata = {
@@ -9,13 +10,6 @@ export const metadata: Metadata = {
   description: 'Official One More Film logos, colors, product screenshots and press copy.',
 };
 
-const colors = [
-  ['White', '#FFFFFF'],
-  ['Ink Black', '#00171F'],
-  ['Deep Space Blue', '#003459'],
-  ['Cerulean', '#007EA7'],
-  ['Fresh Sky', '#00A8E8'],
-];
 const logoVersions = [
   ['Cerulean symbol', 'encore-cerulean'],
   ['Ink symbol', 'encore-ink'],
@@ -106,7 +100,7 @@ const MediaKitPage = () => (
         Color & type
       </h2>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
-        {colors.map(([name, hex]) => (
+        {PALETTE.map(({ name, hex }) => (
           <div key={hex} className="space-y-3">
             <div
               className="h-24 rounded-xl border border-border"

@@ -4,7 +4,7 @@ A movie discovery app built with Next.js App Router, React, TypeScript, Tailwind
 
 ## Run locally
 
-Requires Node.js 20.9+ (developed with Node 24).
+Requires Node.js 22 or later (developed with Node 24).
 
 ```sh
 npm ci
@@ -19,11 +19,11 @@ Without a token, `TMDB_DEMO_MODE=true` explicitly enables a labeled sample colle
 ## Features
 
 - Daily and weekly trends, search and pagination
-- Genre filtering and sorting within the current catalogue page
+- Genre filtering and sorting within the current catalogue page, kept in the URL
 - Film details, full cast, trailers and related films
 - English-language discovery by genre, era and runtime
 - Trailer feed with next-player preparation and native YouTube controls
-- Browser-local watchlists, synchronized between tabs
+- Browser-local watchlists, synchronized between tabs through `useSyncExternalStore`
 - Light, dark, and system themes with a saved preference and compact mobile navigation
 - Shared-artwork navigation transitions, keyboard controls and reduced-motion support
 - Empty, missing-artwork, loading, not-found and upstream-failure states
@@ -33,27 +33,40 @@ Without a token, `TMDB_DEMO_MODE=true` explicitly enables a labeled sample colle
 ```text
 app/                       Routes, server pages and API handlers
 components/
-  discovery/               Preferences, feed, playback and discovery styles
-  movies/                  Cards, artwork, navigation and detail dialogs
-  watchlist/               Save button and browser storage provider
-  theme/                   Theme provider and shadcn appearance menu
-  ui/                      Shared shadcn/ui components (Base UI, Nova preset)
-  brand.tsx                SVG identity
-  header.tsx               Navigation and search
-  explorer.tsx             Catalogue filters and sorting
-lib/                       TMDB requests, domain types and pure helpers
-tests/                     Node test runner + TypeScript regression tests
-public/                    SVG identity and downloadable media kit
-scripts/                   Reproducible media kit generation
+  discovery/               Preference form, trailer feed, its hooks and styles
+  movies/                  Cards, artwork, featured film, navigation and detail dialogs
+  people/                  Portraits, cast cards and people links
+  watchlist/               Save button, provider and browser storage store
+  theme/                   Theme provider and appearance menu
+  ui/                      shadcn/ui components (Base UI, Nova preset)
+  *.tsx                    Header, footer, catalogue explorer and small shared pieces
+lib/                       Server TMDB client and pure, tested helpers
+tests/                     Node test runner suites, one per module
+public/                    SVG identity and the generated media kit
+scripts/                   Media kit generator (TypeScript)
 ```
 
-The structure follows features without adding service/repository layers. No database, Prisma, tRPC or background job infrastructure is needed: TMDB owns movie data, localStorage holds saved films, and React context keeps the active discovery session across navigation.
+The structure follows features without service or repository layers. No database is needed: TMDB owns movie data, localStorage holds saved films, and React context keeps the active discovery session across navigation.
+
+Each fact lives in one module and is imported where it is used:
+
+| Module                           | Owns                                                            |
+| -------------------------------- | --------------------------------------------------------------- |
+| `lib/tmdb.ts`                    | Every TMDB request, demo-mode fallbacks and `TmdbError`         |
+| `lib/discovery.ts`               | Discovery preferences, their limits and validation              |
+| `lib/catalogue.ts`               | Home page genre and sort filters, kept in the URL               |
+| `lib/params.ts`                  | Page, ID and search query limits                                |
+| `lib/links.ts`                   | Every internal route and external URL                           |
+| `lib/format.ts`, `lib/genres.ts` | Display formatting and TMDB genre names                         |
+| `lib/brand.ts`                   | Palette, site URLs and author, shared with the media kit script |
 
 ## UI components and build tooling
 
-Shared controls come from shadcn/ui 4.23 (Base UI, Nova): buttons, toggles, radio groups, native selects, inputs, dialogs, dropdown menus and cards. `components.json` preserves the registry configuration. Brand colors are mapped to semantic shadcn tokens, and Barlow Condensed headings and Barlow body text stay local. Edit the shared primitives instead of adding new per-page control CSS. Default buttons and toggles use 44 px touch targets.
+Shared controls come from shadcn/ui (Base UI, Nova): buttons, toggles, radio groups, selects, inputs, dialogs, dropdown menus and cards. `components.json` preserves the registry configuration. Brand colors are mapped to semantic shadcn tokens, and Barlow Condensed headings and Barlow body text are self-hosted. Default buttons and toggles use 44 px touch targets.
 
-Next.js 16 uses Turbopack for both `next dev` and `next build`. Next.js 16.4.6, React 19.3.1 and Tailwind CSS 4.3.5 were verified against the current stable npm releases during this pass. A single app does not need a Turborepo task runner or a monorepo. The shadcn CLI is a development dependency; the scoped minimatch override fixes its transitive advisory without downgrading the CLI.
+Next.js 16 uses Turbopack for both `next dev` and `next build`. The shadcn CLI is a development dependency; the scoped minimatch override fixes its transitive advisory without downgrading the CLI.
+
+TypeScript 7 does the type checking (`npm run typecheck`). TypeScript 7 does not ship a compiler API yet, so `typescript` is aliased to the TypeScript 6 compatibility package for ESLint's `typescript-eslint`, as the TypeScript 7 release notes recommend, and `@typescript/native` provides the `tsc` binary.
 
 ## Themes
 
@@ -65,19 +78,17 @@ Theme colors live in `app/globals.css`. Shared semantic tokens drive both the ex
 
 Visit `/media-kit` for the preview and downloads, or open `public/one-more-film-media-kit.zip`. It includes six SVG logo variants, two SVG social assets, four product screenshots, color values, reusable copy and a three-page PDF. Movie artwork in screenshots belongs to its respective rights holders.
 
-To regenerate the assets after updating the approved screenshots:
+The kit is generated and committed so the site can serve it as static files. After changing the brand facts in `lib/brand.ts` or replacing the screenshots, regenerate it:
 
 ```sh
-python3 -m venv .venv-media-kit
-.venv-media-kit/bin/pip install -r scripts/media-kit-requirements.txt
-.venv-media-kit/bin/python scripts/build-media-kit.py
+npm run media-kit
 ```
 
-The script uses the installed Barlow font family and keeps the logo assets as vectors. No image generation is used.
+The script outlines Barlow into the SVG logos, so they render without the font, and keeps every logo a vector. No image generation is used.
 
 ## Data and performance decisions
 
-- **Server data:** catalogue and detail pages call TMDB directly. `lib/tmdb.ts` handles authentication, eight-second timeouts, five-minute fetch caching and safe errors. Credits, videos and recommendations arrive in one detail request, deduplicated with React `cache`.
+- **Server data:** catalogue and detail pages call TMDB directly, and the two API routes are thin wrappers over the same client. `lib/tmdb.ts` handles authentication, eight-second timeouts, five-minute fetch caching and safe errors. Credits, videos and recommendations arrive in one detail request, deduplicated with React `cache`.
 - **Small client payloads:** `toMovie` selects the fields needed by cards and saved films. Cast, videos and unrelated TMDB fields stay out of watchlist storage and Save button props. Old saved items are sanitized when read; the original versioned storage key is retained so the rename does not lose saves.
 - **Load on demand:** discovery styles belong to `/discover`; the feed and YouTube player code load after preference submission. Movie routes prefetch on hover, focus or touch instead of fetching every film's details on grid mount.
 - **Images and fonts:** responsive `next/image` sizes, AVIF/WebP, priority hero artwork and locally hosted Barlow and Barlow Condensed fonts.
@@ -96,12 +107,14 @@ Watchlists hold up to 500 films on this browser, without cross-device sync. If s
 ## Verification
 
 ```sh
-npm run check       # formatting, TypeScript and regression tests
+npm run check       # formatting, ESLint, TypeScript and tests
 npm run build       # production build
 npm run start -- --port 3001
 ```
 
-Tests cover authentication/query encoding, API failures, explicit demo mode, preference constraints, trailer selection, sparse/duplicate pagination, cancellation, compact movie data and damaged/legacy watchlists.
+GitHub Actions runs the same checks and a production build on every push and pull request, using the sample catalogue.
+
+Tests cover authentication and query encoding, API failures and both API routes, explicit demo mode, preference constraints, catalogue filters, formatting, link validation, trailer selection, sparse and duplicate pagination, cancellation, compact movie data, damaged watchlists, and that the CSS palette matches `lib/brand.ts`.
 
 For a mobile Lighthouse audit, run against the production server:
 
@@ -112,29 +125,13 @@ npx lighthouse@13.6.0 http://localhost:3001/ \
   --output=html --output=json --output-path=review/lighthouse-home
 ```
 
-Reports, screenshots and earlier design explorations live in the git-ignored `review/` directory. Local Lighthouse scores vary and do not represent field Core Web Vitals or the cost of a playing YouTube feed.
-
-### Theme update validation
-
-The theme and compact navigation update passed formatting, TypeScript, all 23 tests, and a production build. Browser checks covered Light/Dark/System selection, persistence after reload, the device preference, Escape/focus restoration, and layout at 320 px and 390 px. No browser errors were logged. The mobile light-mode homepage measured **90 performance and 100 accessibility, best practices, and SEO** in Lighthouse 13.6.0; this is a single local lab run, not a dark-mode or field audit. Its report is `review/lighthouse-themes-home.report.html`.
-
-### Previous local audit
-
-On 21 November 2026, Lighthouse 13.6.0 covered eight page cases on mobile and desktop: home, search, preferences, empty watchlist, two movie details (including missing portraits), a person profile, and the media kit. The homepage and person profile were retested after the mobile bottom navigation and profile loading fixes.
-
-The latest local production results range from **90 to 100 performance on mobile** and **100 on desktop**. All checked pages scored **100 accessibility and best practices**. SEO was **100 except one mobile profile run at 91**, where Lighthouse missed the streamed description; the desktop profile run scored 100. Next.js metadata streaming remains enabled. These are lab runs with live TMDB data, not field Core Web Vitals, and scores vary with caching and network conditions.
-
-The changes fix contrast on muted text, remove cramped missing-image labels, prioritize above-the-fold search posters, render watchlist guidance immediately, and reserve space while profiles load. Search performance moved from 95 to 96, watchlist from 94 to 100, and profile layout shift fell from 0.155 in the intermediate run to 0. Homepage performance measured 90 after these changes versus 95 in the initial baseline; no homepage performance gain is claimed.
-
-The older public Vercel deployment was also checked separately on home, preferences, watchlist, and movie details. All four standard categories scored 100 on mobile and desktop in this run. The local changes have not been deployed.
-
-The comparison report is `review/lighthouse-audit/index.html`; full JSON and HTML reports are in its `before`, `after`, `verified`, and `live` folders. Reports are local review artifacts and are ignored by Git. Navigation audits do not measure active YouTube playback or every user state.
-
-Validation passed formatting, TypeScript, all 23 regression tests, and the production build. Browser checks covered missing portraits, links from full cast to profiles, mobile navigation at 320 px and 390 px, active states, and hiding navigation during the trailer feed.
+Reports and screenshots go in the git-ignored `review/` directory. Local Lighthouse scores vary and do not represent field Core Web Vitals or the cost of a playing YouTube feed.
 
 ## Deployment
 
 Deploy as a Next.js application on Vercel or another Node-compatible host. Configure `TMDB_READ_ACCESS_TOKEN` as a server secret and `TMDB_DEMO_MODE=false`. Never commit `.env.local`.
+
+`next.config.ts` sends a Content Security Policy that allows only this origin, TMDB images and the YouTube player, plus `nosniff`, referrer and permissions headers.
 
 ## Credits
 

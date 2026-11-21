@@ -1,6 +1,6 @@
 'use client';
 import { ViewTransition } from 'react';
-import { imageUrl } from '@/lib/types';
+import { imageUrl } from '@/lib/links';
 import { MovieImage } from '@/components/movies/movie-image';
 import { useMovieNavigation } from '@/components/movies/movie-navigation';
 

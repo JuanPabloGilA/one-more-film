@@ -18,7 +18,7 @@ test('discovery validates genres, preference enums and page bounds', () => {
     'page=501',
     'page=1.5',
   ]) {
-    assert.throws(() => readDiscoveryQuery(new URLSearchParams(query)));
+    assert.equal(readDiscoveryQuery(new URLSearchParams(query)), null);
   }
   assert.deepEqual(readDiscoveryQuery(new URLSearchParams('genres=28,28,18&page=2')), {
     preferences: { genres: [28, 18], era: 'any', length: 'any' },
@@ -96,4 +96,14 @@ test('Comedy + Recent + No rush excludes horror hybrids and rejects unrelated or
   assert.equal(tmdbDiscoveryParams(horrorComedy, 1, now).without_genres, undefined);
   assert.equal(matchesDiscovery({ ...movie, genre_ids: [27, 35] }, horrorComedy, now), true);
   assert.equal(tmdbDiscoveryParams({ ...selection, genres: [] }, 1, now).without_genres, undefined);
+});
+
+test('runtime preferences need a known runtime for short and long films', async () => {
+  const { matchesRuntime } = await import('../lib/discovery');
+  assert.equal(matchesRuntime(null, 'any'), true);
+  assert.equal(matchesRuntime(null, 'short'), false);
+  assert.equal(matchesRuntime(100, 'short'), true);
+  assert.equal(matchesRuntime(101, 'short'), false);
+  assert.equal(matchesRuntime(119, 'long'), false);
+  assert.equal(matchesRuntime(120, 'long'), true);
 });

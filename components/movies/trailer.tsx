@@ -12,7 +12,7 @@ import {
 
 export const Trailer = ({ videoKey, title }: { videoKey: string; title: string }) => (
   <Dialog>
-    <DialogTrigger render={<Button className="button" />}>
+    <DialogTrigger render={<Button />}>
       <Play size={17} fill="currentColor" />
       Watch trailer
     </DialogTrigger>

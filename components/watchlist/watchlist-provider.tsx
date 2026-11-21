@@ -1,58 +1,86 @@
 'use client';
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { parseWatchlist, WATCHLIST_KEY } from '@/lib/watchlist';
-import type { Movie } from '@/lib/types';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from 'react';
 import { toMovie } from '@/lib/movie';
-const WatchlistContext = createContext<{
+import type { Movie } from '@/lib/types';
+import { parseWatchlist, WATCHLIST_LIMIT } from '@/lib/watchlist';
+import {
+  getServerSnapshot,
+  getSnapshot,
+  getStorageAvailable,
+  subscribe,
+  writeWatchlist,
+} from './watchlist-store';
+
+type Watchlist = {
   movies: Movie[];
+  /** False until the browser's copy has been read, to avoid flashing an empty list. */
   ready: boolean;
-  message: string;
+  storageAvailable: boolean;
+  isSaved: (movieId: number) => boolean;
   toggle: (movie: Movie) => void;
-}>({ movies: [], ready: false, message: '', toggle: () => {} });
+};
+
+const WatchlistContext = createContext<Watchlist>({
+  movies: [],
+  ready: false,
+  storageAvailable: true,
+  isSaved: () => false,
+  toggle: () => {},
+});
+
+const toggleMessage = (title: string, removed: boolean, persisted: boolean) => {
+  if (!persisted) return 'Saved for this visit. Browser storage is unavailable.';
+  return `${title} ${removed ? 'removed from' : 'added to'} your watchlist.`;
+};
+
 export const WatchlistProvider = ({ children }: { children: ReactNode }) => {
-  const [movies, setMovies] = useState<Movie[]>([]);
-  const [ready, setReady] = useState(false);
-  const [message, setMessage] = useState('');
-  useEffect(() => {
-    const read = () => {
-      try {
-        setMovies(parseWatchlist(localStorage.getItem(WATCHLIST_KEY)));
-      } catch {
-        setMessage('Browser storage is unavailable. Your watchlist will last for this visit.');
-      }
-    };
-    read();
-    setReady(true);
-    const sync = (event: StorageEvent) => {
-      if (event.key === WATCHLIST_KEY || event.key === null) read();
-    };
-    window.addEventListener('storage', sync);
-    return () => window.removeEventListener('storage', sync);
-  }, []);
-  const toggle = (movie: Movie) => {
-    const exists = movies.some((item) => item.id === movie.id);
-    if (!exists && movies.length >= 500) {
-      setMessage('Your watchlist is full. Remove a movie to add another.');
+  const raw = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const storageAvailable = useSyncExternalStore(subscribe, getStorageAvailable, () => true);
+  const [announcement, setAnnouncement] = useState('');
+  const movies = useMemo(() => parseWatchlist(raw ?? null), [raw]);
+
+  const toggle = useCallback((movie: Movie) => {
+    // Read the latest list rather than a render's copy, so rapid clicks never lose an update.
+    const current = parseWatchlist(getSnapshot());
+    const saved = current.some((item) => item.id === movie.id);
+    if (!saved && current.length >= WATCHLIST_LIMIT) {
+      setAnnouncement('Your watchlist is full. Remove a movie to add another.');
       return;
     }
-    const next = exists
-      ? movies.filter((item) => item.id !== movie.id)
-      : [...movies, toMovie(movie)];
-    setMovies(next);
-    try {
-      localStorage.setItem(WATCHLIST_KEY, JSON.stringify(next));
-      setMessage(`${movie.title} ${exists ? 'removed from' : 'added to'} your watchlist.`);
-    } catch {
-      setMessage('Saved for this visit. Browser storage is unavailable.');
-    }
-  };
+    const next = saved
+      ? current.filter((item) => item.id !== movie.id)
+      : [...current, toMovie(movie)];
+    const persisted = writeWatchlist(JSON.stringify(next));
+    setAnnouncement(toggleMessage(movie.title, saved, persisted));
+  }, []);
+
+  const value = useMemo(() => {
+    const savedIds = new Set(movies.map((movie) => movie.id));
+    return {
+      movies,
+      ready: raw !== undefined,
+      storageAvailable,
+      isSaved: (movieId: number) => savedIds.has(movieId),
+      toggle,
+    };
+  }, [movies, raw, storageAvailable, toggle]);
+
   return (
-    <WatchlistContext.Provider value={{ movies, ready, message, toggle }}>
+    <WatchlistContext.Provider value={value}>
       {children}
       <div className="sr-only" role="status" aria-live="polite">
-        {message}
+        {announcement}
       </div>
     </WatchlistContext.Provider>
   );
 };
+
 export const useWatchlist = () => useContext(WatchlistContext);

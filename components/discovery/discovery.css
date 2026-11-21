@@ -1,3 +1,15 @@
+/* The trailer feed is always dark, whatever the site theme, so it has a fixed palette. */
+:root {
+  --feed-backdrop: #000b10;
+  --feed-scrim: #00171f80;
+  --feed-outline: #ffffff66;
+  --feed-outline-soft: #ffffff55;
+  --feed-outline-faint: #ffffff33;
+  --feed-text: #e2eaee;
+  --feed-text-muted: #cedde4;
+  --feed-text-message: #d3e5ed;
+  --feed-eyebrow: #b9dfea;
+}
 @layer components {
   .preference-page {
     display: grid;
@@ -113,10 +125,6 @@
     flex-wrap: wrap;
     gap: 12px;
   }
-  .preference-submit > .button-primary {
-    min-width: 224px;
-    justify-content: space-between;
-  }
   .preference-privacy {
     font-size: 11px;
     color: var(--text-muted);
@@ -142,7 +150,7 @@
     inset: 0;
     z-index: 30;
     background: var(--ink-black);
-    color: white;
+    color: var(--white);
   }
   .film-feed {
     width: 100%;
@@ -176,7 +184,7 @@
     align-items: center;
     gap: 16px;
     padding: 28px 48px;
-    background: linear-gradient(#00171f80, transparent);
+    background: linear-gradient(var(--feed-scrim), transparent);
   }
   .feed-home,
   .feed-preferences,
@@ -186,10 +194,10 @@
     justify-content: center;
     min-width: 44px;
     height: 44px;
-    border: 1px solid #ffffff66;
+    border: 1px solid var(--feed-outline);
     border-radius: 50%;
-    color: white;
-    background: #00171f80;
+    color: var(--white);
+    background: var(--feed-scrim);
     transition:
       background 180ms,
       transform 180ms;
@@ -197,7 +205,7 @@
   .feed-home:hover,
   .feed-preferences:hover,
   .feed-arrow:hover:not(:disabled) {
-    background: #003459;
+    background: var(--deep-space-blue);
   }
   .feed-topbar > div {
     display: grid;
@@ -208,7 +216,7 @@
     font-weight: 500;
   }
   .feed-topbar > div > span {
-    color: #e2eaee;
+    color: var(--feed-text);
     font-size: 11px;
   }
   .feed-preferences {
@@ -230,7 +238,7 @@
     flex-wrap: wrap;
     gap: 16px;
     font-size: 12px;
-    color: #e2eaee;
+    color: var(--feed-text);
   }
   .feed-meta > span:last-child {
     display: inline-flex;
@@ -247,29 +255,6 @@
   .feed-actions {
     display: flex;
     gap: 12px;
-  }
-  .feed-actions .button-primary,
-  .feed-end .button-primary {
-    background: white;
-    color: var(--ink-black);
-  }
-  .feed-actions .button-primary:hover,
-  .feed-end .button-primary:hover {
-    background: #dceef5;
-  }
-  .feed-actions .button-secondary,
-  .feed-end .button-secondary {
-    background: #00171f80;
-    border-color: #ffffff77;
-    color: white;
-  }
-  .feed-actions .button-secondary:hover,
-  .feed-end .button-secondary:hover {
-    background: var(--deep-space-blue);
-  }
-  .feed-actions .button-secondary.is-saved {
-    background: white;
-    color: var(--deep-space-blue);
   }
   .feed-bottom {
     position: absolute;
@@ -291,7 +276,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #e2eaee;
+    color: var(--feed-text);
     font-size: 14px;
     font-weight: 500;
   }
@@ -327,14 +312,14 @@
     text-align: center;
   }
   .feed-end .eyebrow {
-    color: #b9dfea;
+    color: var(--feed-eyebrow);
   }
   .feed-end h2 {
     font-size: clamp(28px, 4vw, 48px);
   }
   .feed-end p {
     max-width: 440px;
-    color: #cedde4;
+    color: var(--feed-text-muted);
     font-size: 14px;
     margin: 0 0 16px;
   }
@@ -504,13 +489,13 @@
   /* The embedded player owns playback controls; app actions stay outside its frame. */
   html:has(.film-discovery--feed) {
     scrollbar-gutter: auto;
-    background: #000b10;
+    background: var(--feed-backdrop);
   }
   .feed-film {
-    background: #000b10;
+    background: var(--feed-backdrop);
   }
   .feed-topbar {
-    background: #000b10;
+    background: var(--feed-backdrop);
   }
   .feed-player {
     position: absolute;
@@ -551,7 +536,7 @@
     justify-content: center;
     gap: 16px;
     text-align: center;
-    color: #d3e5ed;
+    color: var(--feed-text-message);
     pointer-events: none;
   }
   .feed-video-message h2 {
@@ -563,15 +548,15 @@
   }
   .feed-video-message .button {
     pointer-events: auto;
-    color: white;
+    color: var(--white);
     background: var(--deep-space-blue);
-    border-color: #ffffff55;
+    border-color: var(--feed-outline-soft);
   }
   .video-loading-mark {
     width: 28px;
     height: 28px;
-    border: 2px solid #ffffff33;
-    border-top-color: white;
+    border: 2px solid var(--feed-outline-faint);
+    border-top-color: var(--white);
     border-radius: 50%;
     animation: video-loading 900ms linear infinite;
   }

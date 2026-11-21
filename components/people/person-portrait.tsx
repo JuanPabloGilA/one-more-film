@@ -1,6 +1,6 @@
 import { UserRound } from 'lucide-react';
 import { MovieImage } from '@/components/movies/movie-image';
-import { imageUrl } from '@/lib/types';
+import { imageUrl } from '@/lib/links';
 
 export const PersonPortrait = ({
   path,

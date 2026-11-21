@@ -1,16 +1,28 @@
 'use client';
-import { Button } from '@/components/ui/button';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { Toggle } from '@/components/ui/toggle';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import Link from 'next/link';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
-import { defaultPreferences, type DiscoveryPreferences } from '@/lib/discovery';
-import { GENRES } from '@/lib/types';
+import { Button } from '@/components/ui/button';
+import { Toggle } from '@/components/ui/toggle';
+import {
+  CLASSIC_BEFORE_YEAR,
+  defaultPreferences,
+  LONG_MIN_MINUTES,
+  MAX_GENRES,
+  RECENT_YEARS,
+  SHORT_MAX_MINUTES,
+  type DiscoveryPreferences,
+  type Era,
+  type Length,
+} from '@/lib/discovery';
+import { GENRES } from '@/lib/genres';
+import { routes } from '@/lib/links';
 import { useDiscovery } from './discovery-provider';
+import { PreferenceOptions, type PreferenceOption } from './preference-options';
 import { requestFilms } from './request-films';
 
+// The feed and the YouTube player code load only once someone starts discovering.
 const DiscoveryFeed = dynamic(
   () => import('./discovery-feed').then((module) => module.DiscoveryFeed),
   {
@@ -21,18 +33,37 @@ const DiscoveryFeed = dynamic(
     ),
   },
 );
-const genreChoices = [28, 12, 35, 18, 878, 53, 10749, 27, 16, 99, 14, 9648];
 
+const GENRE_CHOICES = [28, 12, 35, 18, 878, 53, 10749, 27, 16, 99, 14, 9648];
+const ERA_OPTIONS: PreferenceOption<Era>[] = [
+  { value: 'any', label: 'Any era', hint: 'Good stories don’t age' },
+  { value: 'recent', label: 'Recent', hint: `The last ${RECENT_YEARS} years` },
+  { value: 'classic', label: 'Classics', hint: `Before ${CLASSIC_BEFORE_YEAR}` },
+];
+const LENGTH_OPTIONS: PreferenceOption<Length>[] = [
+  { value: 'any', label: 'No rush', hint: 'Any length' },
+  { value: 'short', label: 'Keep it short', hint: `${SHORT_MAX_MINUTES} minutes or less` },
+  { value: 'long', label: 'Make a night of it', hint: `${LONG_MIN_MINUTES / 60} hours or more` },
+];
+
+/** The preference form, which becomes the trailer feed once films are found. */
 export const FilmDiscovery = () => {
   const { session, setSession } = useDiscovery();
-  const [preferences, setPreferences] = useState<DiscoveryPreferences>(
-    session?.preferences ?? defaultPreferences,
-  );
+  const [preferences, setPreferences] = useState(session?.preferences ?? defaultPreferences);
   const [editing, setEditing] = useState(!session);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
   const controller = useRef<AbortController | null>(null);
   useEffect(() => () => controller.current?.abort(), []);
+
+  const update = (change: Partial<DiscoveryPreferences>) =>
+    setPreferences((previous) => ({ ...previous, ...change }));
+  const toggleGenre = (id: number, selected: boolean) =>
+    setPreferences((previous) => ({
+      ...previous,
+      genres: selected ? [...previous.genres, id] : previous.genres.filter((genre) => genre !== id),
+    }));
+
   const start = async (event: FormEvent) => {
     event.preventDefault();
     controller.current?.abort();
@@ -54,18 +85,19 @@ export const FilmDiscovery = () => {
         preferences,
         movies: data.results,
         page: data.page,
-        totalPages: Math.min(500, data.total_pages),
+        totalPages: data.total_pages,
         active: 0,
         demo: data.demo,
       });
       setEditing(false);
-    } catch (error) {
+    } catch (reason) {
       if (!request.signal.aborted)
-        setError(error instanceof Error ? error.message : 'Could not load films. Try again.');
+        setError(reason instanceof Error ? reason.message : 'Could not load films. Try again.');
     } finally {
       if (!request.signal.aborted) setPending(false);
     }
   };
+
   if (!editing && session)
     return (
       <DiscoveryFeed
@@ -76,10 +108,12 @@ export const FilmDiscovery = () => {
         }}
       />
     );
+
+  const openToAnything = preferences.genres.length === 0;
   return (
     <main id="main-content" className="preference-page section-shell">
       <div className="preference-intro">
-        <Link href="/" className="back-link">
+        <Link href={routes.home} className="back-link">
           <ArrowLeft size={16} />
           Back to home
         </Link>
@@ -105,19 +139,19 @@ export const FilmDiscovery = () => {
             <span>01</span> Pick your genres
           </legend>
           <p>
-            Choose up to three, or keep an open mind. Horror is only included if you choose it or
-            stay open to anything.
+            Choose up to {MAX_GENRES}, or keep an open mind. Horror is only included if you choose
+            it or stay open to anything.
           </p>
           <div className="preference-genres">
             <Toggle
               variant="outline"
               type="button"
-              pressed={!preferences.genres.length}
-              onPressedChange={() => setPreferences((p) => ({ ...p, genres: [] }))}
+              pressed={openToAnything}
+              onPressedChange={() => update({ genres: [] })}
             >
-              Open to anything {!preferences.genres.length && <Check size={16} />}
+              Open to anything {openToAnything && <Check size={16} />}
             </Toggle>
-            {genreChoices.map((id) => {
+            {GENRE_CHOICES.map((id) => {
               const selected = preferences.genres.includes(id);
               return (
                 <Toggle
@@ -125,13 +159,8 @@ export const FilmDiscovery = () => {
                   key={id}
                   type="button"
                   pressed={selected}
-                  disabled={!selected && preferences.genres.length === 3}
-                  onPressedChange={(pressed) =>
-                    setPreferences((p) => ({
-                      ...p,
-                      genres: pressed ? [...p.genres, id] : p.genres.filter((g) => g !== id),
-                    }))
-                  }
+                  disabled={!selected && preferences.genres.length === MAX_GENRES}
+                  onPressedChange={(pressed) => toggleGenre(id, pressed)}
                 >
                   {GENRES[id]}
                   {selected && <Check size={16} />}
@@ -140,90 +169,37 @@ export const FilmDiscovery = () => {
             })}
           </div>
         </fieldset>
-        <fieldset disabled={pending}>
-          <legend>
-            <span>02</span> From which era?
-          </legend>
-          <RadioGroup
-            name="era"
-            aria-label="From which era?"
-            className="preference-options"
-            value={preferences.era}
-            disabled={pending}
-            onValueChange={(value) =>
-              setPreferences((p) => ({ ...p, era: value as DiscoveryPreferences['era'] }))
-            }
-          >
-            {(
-              [
-                ['any', 'Any era', 'Good stories don’t age'],
-                ['recent', 'Recent', 'The last five years'],
-                ['classic', 'Classics', 'Before 2000'],
-              ] as const
-            ).map(([value, label, hint]) => (
-              <label
-                key={value}
-                htmlFor={`era-${value}`}
-                className="preference-radio has-[[data-checked]]:border-primary has-[[data-checked]]:bg-accent"
-              >
-                <RadioGroupItem id={`era-${value}`} value={value} className="order-2" />
-                <span>
-                  <strong>{label}</strong>
-                  <small>{hint}</small>
-                </span>
-              </label>
-            ))}
-          </RadioGroup>
-        </fieldset>
-        <fieldset disabled={pending}>
-          <legend>
-            <span>03</span> How much time do you have?
-          </legend>
-          <RadioGroup
-            name="length"
-            aria-label="How much time do you have?"
-            className="preference-options"
-            value={preferences.length}
-            disabled={pending}
-            onValueChange={(value) =>
-              setPreferences((p) => ({ ...p, length: value as DiscoveryPreferences['length'] }))
-            }
-          >
-            {(
-              [
-                ['any', 'No rush', 'Any length'],
-                ['short', 'Keep it short', '100 minutes or less'],
-                ['long', 'Make a night of it', 'Two hours or more'],
-              ] as const
-            ).map(([value, label, hint]) => (
-              <label
-                key={value}
-                htmlFor={`length-${value}`}
-                className="preference-radio has-[[data-checked]]:border-primary has-[[data-checked]]:bg-accent"
-              >
-                <RadioGroupItem id={`length-${value}`} value={value} className="order-2" />
-                <span>
-                  <strong>{label}</strong>
-                  <small>{hint}</small>
-                </span>
-              </label>
-            ))}
-          </RadioGroup>
-        </fieldset>
+        <PreferenceOptions
+          name="era"
+          step="02"
+          legend="From which era?"
+          options={ERA_OPTIONS}
+          value={preferences.era}
+          disabled={pending}
+          onChange={(era) => update({ era })}
+        />
+        <PreferenceOptions
+          name="length"
+          step="03"
+          legend="How much time do you have?"
+          options={LENGTH_OPTIONS}
+          value={preferences.length}
+          disabled={pending}
+          onChange={(length) => update({ length })}
+        />
         {error && (
           <p className="discovery-error" role="alert">
             {error}
           </p>
         )}
         <div className="preference-submit">
-          <Button className="button discovery-cta" disabled={pending} type="submit">
+          <Button className="discovery-cta" disabled={pending} type="submit">
             {pending ? 'Finding your films…' : 'Find my next film'}
             <ArrowRight size={18} />
           </Button>
           {session && (
             <Button
               variant="ghost"
-              className="button"
               type="button"
               disabled={pending}
               onClick={() => setEditing(false)}

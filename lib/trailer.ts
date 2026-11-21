@@ -1,11 +1,12 @@
-import type { MovieDetails } from './types';
-export const selectTrailer = (videos: MovieDetails['videos']['results']) => {
-  let fallback: (typeof videos)[number] | null = null;
-  for (const video of videos) {
-    if (video.site !== 'YouTube' || video.type !== 'Trailer' || !/^[\w-]{11}$/.test(video.key))
-      continue;
-    if (video.official) return video;
-    fallback ??= video;
-  }
-  return fallback;
+import type { Video } from './types';
+
+const YOUTUBE_VIDEO_ID = /^[\w-]{11}$/;
+
+/** Prefers an official YouTube trailer, falling back to the first unofficial one. */
+export const selectTrailer = (videos: Video[]) => {
+  const trailers = videos.filter(
+    (video) =>
+      video.site === 'YouTube' && video.type === 'Trailer' && YOUTUBE_VIDEO_ID.test(video.key),
+  );
+  return trailers.find((video) => video.official) ?? trailers[0] ?? null;
 };

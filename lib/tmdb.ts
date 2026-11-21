@@ -1,7 +1,17 @@
 import { cache } from 'react';
-import { demoDetail, demoMovies } from './demo';
+import { demoDetail, demoMovies, demoPage } from './demo';
+import { matchesDiscovery, matchesRuntime, tmdbDiscoveryParams } from './discovery';
+import type { DiscoveryPreferences } from './discovery';
 import { toMovie } from './movie';
-import type { MovieDetails, MovieList, PersonDetails } from './types';
+import { isValidId, normalizeQuery } from './params';
+import { selectTrailer } from './trailer';
+import type { Movie, MovieDetails, MovieList, PersonDetails, Trailer, Video } from './types';
+
+// Server-only TMDB client. Every loader answers from the sample catalogue in demo mode.
+
+const TMDB_API = 'https://api.themoviedb.org/3';
+const REQUEST_TIMEOUT_MS = 8000;
+const REVALIDATE_SECONDS = 300;
 
 export class TmdbError extends Error {
   constructor(
@@ -12,10 +22,12 @@ export class TmdbError extends Error {
     this.name = 'TmdbError';
   }
 }
+
+const notFound = (what: 'movie' | 'person') =>
+  new TmdbError(`This ${what} could not be found.`, 404);
+
 export const isDemoMode = () =>
   !process.env.TMDB_READ_ACCESS_TOKEN && process.env.TMDB_DEMO_MODE === 'true';
-export const normalizePage = (value?: string) =>
-  /^\d+$/.test(value ?? '') ? Math.min(500, Math.max(1, Number(value))) : 1;
 
 export const tmdbRequest = async <T>(
   path: string,
@@ -28,58 +40,71 @@ export const tmdbRequest = async <T>(
       'Movie data is not connected yet. Please configure the TMDB access token.',
       503,
     );
-  const url = new URL(`https://api.themoviedb.org/3/${path}`);
+  const url = new URL(`${TMDB_API}/${path}`);
   url.search = new URLSearchParams({ language: 'en-US', ...params }).toString();
   let response: Response;
   try {
     response = await fetcher(url, {
       headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
-      signal: AbortSignal.timeout(8000),
-      next: { revalidate: 300 },
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      next: { revalidate: REVALIDATE_SECONDS },
     });
   } catch {
     throw new TmdbError('The movie service is taking too long to respond. Please try again.');
   }
-  if (!response.ok) {
-    if (response.status === 404) throw new TmdbError('This movie could not be found.', 404);
-    if (response.status === 429)
-      throw new TmdbError('The movie service is busy. Please try again in a moment.', 429);
-    throw new TmdbError('We could not load movie data. Please try again shortly.');
-  }
+  // Upstream bodies are never forwarded: they can contain diagnostics meant for TMDB clients.
+  if (response.status === 404) throw notFound('movie');
+  if (response.status === 429)
+    throw new TmdbError('The movie service is busy. Please try again in a moment.', 429);
+  if (!response.ok) throw new TmdbError('We could not load movie data. Please try again shortly.');
   return response.json() as Promise<T>;
 };
 
+/** Search results when there is a query, otherwise today's or this week's trending films. */
 export const getMovies = async (
-  options: { query?: string; window?: string; page?: number } = {},
+  options: { query?: string; period?: 'day' | 'week'; page?: number } = {},
 ): Promise<MovieList> => {
-  const query = options.query?.trim().slice(0, 100) ?? '';
-  const window = options.window === 'week' ? 'week' : 'day';
+  const query = normalizeQuery(options.query);
   const page = options.page ?? 1;
   if (isDemoMode()) {
-    const results = demoMovies.filter((movie) =>
-      movie.title.toLowerCase().includes(query.toLowerCase()),
-    );
-    return {
-      results: page === 1 ? results : [],
-      page,
-      total_pages: 1,
-      total_results: results.length,
-      demo: true,
-    };
+    const needle = query.toLowerCase();
+    const matches = demoMovies.filter((movie) => movie.title.toLowerCase().includes(needle));
+    return demoPage(matches, page);
   }
-  const data = await tmdbRequest<Omit<MovieList, 'demo'>>(
-    query ? 'search/movie' : `trending/movie/${window}`,
-    { page: String(page), ...(query ? { query, include_adult: 'false' } : {}) },
-  );
+  const path = query ? 'search/movie' : `trending/movie/${options.period ?? 'day'}`;
+  const data = await tmdbRequest<MovieList>(path, {
+    page: String(page),
+    ...(query ? { query, include_adult: 'false' } : {}),
+  });
   return { ...data, results: data.results.map(toMovie), demo: false };
 };
 
+export const discoverMovies = async (
+  preferences: DiscoveryPreferences,
+  page: number,
+  now = new Date(),
+): Promise<MovieList> => {
+  const matches = (movie: Movie) => matchesDiscovery(movie, preferences, now);
+  if (isDemoMode()) {
+    const results = demoMovies.filter(
+      (movie) =>
+        matches(movie) && matchesRuntime(demoDetail(movie.id)?.runtime, preferences.length),
+    );
+    return demoPage(results, page);
+  }
+  const data = await tmdbRequest<MovieList>(
+    'discover/movie',
+    tmdbDiscoveryParams(preferences, page, now),
+  );
+  return { ...data, results: data.results.filter(matches).map(toMovie), demo: false };
+};
+
+// cache() shares one lookup between generateMetadata and the page during a request.
 export const getMovie = cache(async (id: number): Promise<MovieDetails> => {
-  if (!Number.isSafeInteger(id) || id < 1)
-    throw new TmdbError('This movie could not be found.', 404);
+  if (!isValidId(id)) throw notFound('movie');
   if (isDemoMode()) {
     const movie = demoDetail(id);
-    if (!movie) throw new TmdbError('This movie could not be found.', 404);
+    if (!movie) throw notFound('movie');
     return movie;
   }
   const data = await tmdbRequest<MovieDetails>(`movie/${id}`, {
@@ -94,7 +119,16 @@ export const getMovie = cache(async (id: number): Promise<MovieDetails> => {
 });
 
 export const getPerson = cache(async (id: number): Promise<PersonDetails> => {
-  if (!Number.isSafeInteger(id) || id < 1 || isDemoMode())
-    throw new TmdbError('This person could not be found.', 404);
+  // The sample catalogue has no people.
+  if (!isValidId(id) || isDemoMode()) throw notFound('person');
   return tmdbRequest<PersonDetails>(`person/${id}`, { append_to_response: 'movie_credits' });
 });
+
+export const getTrailer = async (id: number): Promise<Trailer | null> => {
+  if (!isValidId(id)) throw notFound('movie');
+  const videos = isDemoMode()
+    ? (demoDetail(id)?.videos.results ?? [])
+    : (await tmdbRequest<{ results: Video[] }>(`movie/${id}/videos`)).results;
+  const trailer = selectTrailer(videos);
+  return trailer && { key: trailer.key, name: trailer.name };
+};

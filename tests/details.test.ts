@@ -1,6 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { externalUrl, filmography, fullDate, keyCrew, money } from '../lib/details';
+import { filmography, keyCrew } from '../lib/details';
+import { fullDate, money } from '../lib/format';
+import { safeExternalUrl } from '../lib/links';
 import type { PersonCredit } from '../lib/types';
 
 const credit = (id: number, overrides: Partial<PersonCredit> = {}): PersonCredit => ({
@@ -24,8 +26,8 @@ test('missing dates and budgets are not presented as real zero values', () => {
 });
 test('external links allow only complete web URLs', () => {
   for (const value of ['javascript:alert(1)', 'data:text/html,bad', '//example.com', '', null])
-    assert.equal(externalUrl(value), null);
-  assert.equal(externalUrl('https://example.com/film'), 'https://example.com/film');
+    assert.equal(safeExternalUrl(value), null);
+  assert.equal(safeExternalUrl('https://example.com/film'), 'https://example.com/film');
 });
 test('filmography combines acting and crew roles without duplicate films or adult credits', () => {
   const result = filmography({

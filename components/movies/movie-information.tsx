@@ -1,10 +1,17 @@
-import Link from 'next/link';
+import { ExternalLink } from '@/components/external-link';
+import { PeopleLinks } from '@/components/people/people-links';
+import { keyCrew } from '@/lib/details';
+import { fullDate, money } from '@/lib/format';
+import { imdbTitleUrl, safeExternalUrl, tmdbUrl } from '@/lib/links';
 import type { MovieDetails } from '@/lib/types';
-import { externalUrl, fullDate, keyCrew, money } from '@/lib/details';
+
+const names = (items?: { name: string }[]) => items?.map((item) => item.name).join(', ');
 
 export const MovieInformation = ({ movie }: { movie: MovieDetails }) => {
   const crew = keyCrew(movie.credits.crew);
-  const website = externalUrl(movie.homepage);
+  const website = safeExternalUrl(movie.homepage);
+  const imdb = imdbTitleUrl(movie.imdb_id);
+  const keywords = movie.keywords?.keywords ?? [];
   const facts = [
     ['Original title', movie.original_title],
     ['Status', movie.status],
@@ -13,8 +20,8 @@ export const MovieInformation = ({ movie }: { movie: MovieDetails }) => {
       'Spoken languages',
       movie.spoken_languages?.map((language) => language.english_name || language.name).join(', '),
     ],
-    ['Production countries', movie.production_countries?.map((country) => country.name).join(', ')],
-    ['Production companies', movie.production_companies?.map((company) => company.name).join(', ')],
+    ['Production countries', names(movie.production_countries)],
+    ['Production companies', names(movie.production_companies)],
     ['Budget (USD)', money(movie.budget)],
     ['Worldwide box office (USD)', money(movie.revenue)],
   ].filter(([, value]) => value);
@@ -34,49 +41,24 @@ export const MovieInformation = ({ movie }: { movie: MovieDetails }) => {
         {movie.belongs_to_collection && (
           <p className="detail-collection">
             Part of{' '}
-            <a
-              className="detail-text-link"
-              href={`https://www.themoviedb.org/collection/${movie.belongs_to_collection.id}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {movie.belongs_to_collection.name} ↗
-            </a>
+            <ExternalLink href={tmdbUrl.collection(movie.belongs_to_collection.id)}>
+              {movie.belongs_to_collection.name}
+            </ExternalLink>
           </p>
         )}
-        {!!movie.keywords?.keywords.length && (
+        {keywords.length > 0 && (
           <div className="film-themes">
             <h3>Themes</h3>
-            <p>{movie.keywords.keywords.map((keyword) => keyword.name).join(' / ')}</p>
+            <p>{keywords.map((keyword) => keyword.name).join(' / ')}</p>
           </div>
         )}
         <div className="detail-links">
-          {website && (
-            <a className="detail-text-link" href={website} target="_blank" rel="noreferrer">
-              Official website ↗
-            </a>
-          )}
-          {movie.imdb_id && /^tt\d+$/.test(movie.imdb_id) && (
-            <a
-              className="detail-text-link"
-              href={`https://www.imdb.com/title/${movie.imdb_id}/`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              IMDb ↗
-            </a>
-          )}
-          <a
-            className="detail-text-link"
-            href={`https://www.themoviedb.org/movie/${movie.id}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            TMDB ↗
-          </a>
+          {website && <ExternalLink href={website}>Official website</ExternalLink>}
+          {imdb && <ExternalLink href={imdb}>IMDb</ExternalLink>}
+          <ExternalLink href={tmdbUrl.movie(movie.id)}>TMDB</ExternalLink>
         </div>
       </section>
-      {!!crew.length && (
+      {crew.length > 0 && (
         <section className="creative-team" aria-labelledby="crew-heading">
           <span className="eyebrow">Behind the camera</span>
           <h2 id="crew-heading">The creative team</h2>
@@ -85,14 +67,7 @@ export const MovieInformation = ({ movie }: { movie: MovieDetails }) => {
               <div key={job}>
                 <dt>{job}</dt>
                 <dd>
-                  {people.map((person, index) => (
-                    <span key={person.id}>
-                      {index > 0 && ', '}
-                      <Link className="person-link" href={`/person/${person.id}`}>
-                        {person.name}
-                      </Link>
-                    </span>
-                  ))}
+                  <PeopleLinks people={people} />
                 </dd>
               </div>
             ))}
